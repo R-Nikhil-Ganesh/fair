@@ -1,0 +1,20 @@
+rules_version = '2';
+service firebase.storage {
+match /b/{bucket}/o {
+// User can upload/read their own audit files
+match /audits/{uid}/{auditId}/{fileName} {
+  allow read, write: if request.auth != null && request.auth.uid == uid;
+}
+
+// Sample datasets are publicly readable
+match /sample-datasets/{fileName} {
+  allow read: if true;
+  allow write: if false;
+}
+
+// Default deny
+match /{allPaths=**} {
+  allow read, write: if false;
+}
+}
+}

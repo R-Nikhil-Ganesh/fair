@@ -20,3 +20,5 @@ const storage = getStorage(app);
 const googleProvider = new GoogleAuthProvider();
 
 export { app, auth, db, storage, googleProvider, signInWithPopup, signOut };
+import { initAppCheck } from "./appCheck";
+if (typeof window !== "undefined") initAppCheck();

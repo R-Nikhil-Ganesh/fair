@@ -1,0 +1,6 @@
+age,sex,credit_amount,duration,purpose,credit_risk
+34,male,1169,6,furniture,1
+22,female,5951,48,car,0
+49,male,2096,12,furniture,1
+45,female,7882,42,education,0
+53,male,4870,24,car,1

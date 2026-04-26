@@ -3,13 +3,18 @@ import os
 from dataclasses import dataclass
 from typing import Literal
 
-import google.generativeai as genai
+import vertexai
+from vertexai.generative_models import GenerativeModel
 
 from counterfactuals import CounterfactualResult
 from fairness_engine import FairnessResult
 
-genai.configure(api_key=os.environ["GEMINI_API_KEY"])
-model = genai.GenerativeModel("gemini-2.0-flash-exp")
+project_id = os.environ.get("GOOGLE_CLOUD_PROJECT", "")
+vertexai.init(
+	project=project_id,
+	location=os.environ.get("VERTEX_AI_LOCATION", "us-central1"),
+)
+model = GenerativeModel("gemini-2.0-flash-exp")
 
 
 @dataclass

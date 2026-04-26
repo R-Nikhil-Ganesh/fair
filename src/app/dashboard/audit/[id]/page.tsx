@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Download } from "lucide-react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { useAuth } from "@/lib/AuthContext";
 import { AuditReport } from "@/lib/types";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { AuditMetricsRow } from "@/components/audit/AuditMetricsRow";
@@ -14,14 +15,15 @@ import { AuditInsights } from "@/components/audit/AuditInsights";
 export default function AuditResultsPage() {
   const params = useParams();
   const router = useRouter();
+  const { user } = useAuth();
   const [report, setReport] = useState<AuditReport | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchReport() {
-      if (!params.id) return;
+      if (!params.id || !user) return;
       try {
-        const docRef = doc(db, "audits", params.id as string);
+        const docRef = doc(db, "audits", user.uid, "audits", params.id as string);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           setReport({ id: docSnap.id, ...docSnap.data() } as AuditReport);
@@ -35,7 +37,7 @@ export default function AuditResultsPage() {
       }
     }
     fetchReport();
-  }, [params.id]);
+  }, [params.id, user]);
 
   if (loading) {
     return <div className="p-8 text-center text-muted-foreground">Loading audit results...</div>;

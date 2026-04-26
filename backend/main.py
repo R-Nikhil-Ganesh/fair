@@ -1,16 +1,20 @@
 import os
 from functools import lru_cache
+from pathlib import Path
 from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from google.cloud import firestore
 from pydantic import BaseModel
+from dotenv import load_dotenv
 from slowapi import Limiter
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
+
+load_dotenv(dotenv_path=Path(__file__).with_name(".env"))
 
 from celery_worker import run_audit_task, run_model_audit_task
 

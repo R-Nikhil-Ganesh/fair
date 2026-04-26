@@ -1,11 +1,15 @@
 import io
 import os
 from dataclasses import asdict
+from pathlib import Path
 
 import pandas as pd
 from celery import Celery
 from google.cloud import storage
 from google.cloud.firestore import SERVER_TIMESTAMP
+from dotenv import load_dotenv
+
+load_dotenv(dotenv_path=Path(__file__).with_name(".env"))
 
 from fairness_engine import compute_fairness_metrics
 from firestore_client import (

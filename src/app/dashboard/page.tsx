@@ -20,7 +20,7 @@ export default function DashboardOverview() {
     async function fetchAudits() {
       if (!user) return;
       try {
-        const auditsRef = collection(db, "audits");
+        const auditsRef = collection(db, "audits", user.uid, "audits");
         const q = query(
           auditsRef, 
           where("userId", "==", user.uid),

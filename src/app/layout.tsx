@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 import { AuthProvider } from "@/lib/AuthContext";
+import { AccessibilityWrapper } from "@/components/AccessibilityWrapper";
 
 export const metadata: Metadata = {
   title: "FairLend AI - AI Fairness Audit Dashboard",
@@ -16,7 +17,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <AuthProvider>{children}</AuthProvider>
+        <AccessibilityWrapper>
+          <AuthProvider>{children}</AuthProvider>
+        </AccessibilityWrapper>
       </body>
     </html>
   );

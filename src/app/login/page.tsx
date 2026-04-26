@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { ShieldCheck, AlertCircle } from "lucide-react";
+import { AlertCircle, ShieldCheck } from "lucide-react";
+import type { FirebaseError } from "firebase/app";
 import { auth, googleProvider, signInWithPopup } from "@/lib/firebase";
+import { Brand } from "@/components/layout/Brand";
 
 export default function LoginPage() {
-  const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -16,21 +16,31 @@ export default function LoginPage() {
     try {
       await signInWithPopup(auth, googleProvider);
       // router.push("/dashboard") is handled by AuthContext
-    } catch (err: any) {
-      setError(err.message || "Failed to sign in");
+    } catch (err: unknown) {
+      const firebaseError = err as FirebaseError;
+      setError(firebaseError.message || "Failed to sign in");
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted">
+    <div
+      className="flex min-h-screen items-center justify-center px-4"
+      style={{
+        background:
+          "radial-gradient(1200px 600px at 0% 0%, rgba(37,99,235,0.14), transparent), radial-gradient(800px 400px at 100% 100%, rgba(16,185,129,0.12), transparent), #f8fafc",
+      }}
+    >
       <div className="card max-w-md w-full mx-4 flex flex-col items-center p-8">
-        <div className="w-16 h-16 bg-accent text-primary rounded-full flex items-center justify-center mb-6">
+        <div className="w-full mb-6">
+          <Brand compact />
+        </div>
+        <div className="w-16 h-16 bg-accent text-primary rounded-full flex items-center justify-center mb-4">
           <ShieldCheck size={32} />
         </div>
         <h1 className="text-2xl mb-2 text-center">Welcome to FairLend AI</h1>
         <p className="text-muted-foreground text-center mb-8">
-          Sign in to access your fairness audit dashboard and compliance reports.
+          Sign in to access fairness audit dashboards, mitigation plans, and compliance reporting.
         </p>
 
         {error && (

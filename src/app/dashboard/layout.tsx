@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { 
-  ShieldCheck, 
   LayoutDashboard, 
   FilePlus2, 
   History, 
@@ -13,6 +12,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 import { auth, signOut } from "@/lib/firebase";
+import { Brand } from "@/components/layout/Brand";
 
 export default function DashboardLayout({
   children,
@@ -35,11 +35,9 @@ export default function DashboardLayout({
 
   return (
     <div className="dashboard-layout">
-      {/* Sidebar */}
       <aside className="sidebar">
         <div className="sidebar-header">
-          <ShieldCheck className="text-primary" size={24} />
-          <span className="font-bold text-lg tracking-tight">FairLend AI</span>
+          <Brand compact />
         </div>
         
         <nav className="sidebar-nav">
@@ -70,7 +68,6 @@ export default function DashboardLayout({
         </div>
       </aside>
 
-      {/* Main Content */}
       <div className="main-content">
         <header className="top-header">
           <div className="text-sm font-medium text-muted-foreground">
@@ -85,7 +82,12 @@ export default function DashboardLayout({
             </button>
             <div className="flex items-center gap-2 pl-4 border-l border-border">
               <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm overflow-hidden">
-                {user?.photoURL ? <img src={user.photoURL} alt="Profile" /> : (user?.displayName?.charAt(0) || "U")}
+                {user?.photoURL ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={user.photoURL} alt="Profile" />
+                ) : (
+                  user?.displayName?.charAt(0) || "U"
+                )}
               </div>
               <div className="flex flex-col">
                 <span className="text-sm font-semibold leading-none">{user?.displayName || "User"}</span>

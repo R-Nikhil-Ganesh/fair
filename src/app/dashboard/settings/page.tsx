@@ -1,14 +1,15 @@
 "use client";
 
 import { Save } from "lucide-react";
+import { PageTitle } from "@/components/ui/PageTitle";
 
 export default function SettingsPage() {
   return (
     <div className="flex flex-col gap-6 max-w-4xl mx-auto">
-      <div>
-        <h1 className="text-2xl mb-1">Settings</h1>
-        <p className="text-muted-foreground">Manage your organization's fairness compliance preferences.</p>
-      </div>
+      <PageTitle
+        title="Settings"
+        subtitle="Manage your organization's fairness and compliance preferences."
+      />
 
       <div className="grid md:grid-cols-3 gap-6">
         <div className="md:col-span-1">

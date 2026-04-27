@@ -19,6 +19,17 @@ export function ApprovalRatesChart({ disparities }: { disparities: DisparityInfo
   }));
   const hasFlag = disparities.some((disparity) => disparity.flagged);
 
+  if (chartData.length === 0) {
+    return (
+      <div className="card">
+        <h2 className="text-lg mb-3">Approval Rates by Group</h2>
+        <p className="text-sm text-muted-foreground">
+          Approval-rate chart will appear once fairness metrics are available.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="card">
       <h2 className="text-lg mb-6">Approval Rates by Group</h2>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Download } from "lucide-react";
+import { ArrowLeft, Download, Loader2 } from "lucide-react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
@@ -11,6 +11,7 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { AuditMetricsRow } from "@/components/audit/AuditMetricsRow";
 import { ApprovalRatesChart } from "@/components/audit/ApprovalRatesChart";
 import { AuditInsights } from "@/components/audit/AuditInsights";
+import { mapFirestoreAuditToReport } from "@/lib/auditReportAdapter";
 
 export default function AuditResultsPage() {
   const params = useParams();
@@ -26,7 +27,7 @@ export default function AuditResultsPage() {
         const docRef = doc(db, "audits", user.uid, "audits", params.id as string);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-          setReport({ id: docSnap.id, ...docSnap.data() } as AuditReport);
+          setReport(mapFirestoreAuditToReport(docSnap.id, docSnap.data() as Record<string, unknown>));
         } else {
           console.error("No such document!");
         }
@@ -47,6 +48,8 @@ export default function AuditResultsPage() {
     return <div className="p-8 text-center text-muted-foreground">Audit not found.</div>;
   }
 
+  const isProcessing = report.status === "processing";
+  const isFailed = report.status === "failed";
   const hasFlag = report.disparities.some(d => d.flagged);
 
   return (
@@ -58,8 +61,12 @@ export default function AuditResultsPage() {
           </button>
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl m-0 leading-none">{report.datasetName}</h1>
-              {hasFlag ? (
+              <h1 className="text-2xl m-0 leading-none">{report.datasetName || "Audit Report"}</h1>
+              {isProcessing ? (
+                <StatusBadge label="Processing" variant="processing" />
+              ) : isFailed ? (
+                <StatusBadge label="Failed" variant="error" />
+              ) : hasFlag ? (
                 <StatusBadge label="Action Required" variant="warning" />
               ) : (
                 <StatusBadge label="Passed" variant="pass" />
@@ -70,17 +77,39 @@ export default function AuditResultsPage() {
             </p>
           </div>
         </div>
-        <button className="btn btn-secondary flex items-center gap-2">
+        <button className="btn btn-secondary flex items-center gap-2" disabled={isProcessing || isFailed}>
           <Download size={16} /> Export PDF
         </button>
       </div>
 
+      {isProcessing ? (
+        <div className="card border border-warning/40 bg-warning/10 flex items-start gap-3">
+          <Loader2 size={18} className="animate-spin mt-0.5" />
+          <div>
+            <p className="font-semibold">Audit is still processing in cloud workers</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              Metrics and narrative will appear as soon as Firestore receives results from the worker pipeline.
+            </p>
+          </div>
+        </div>
+      ) : null}
+
+      {isFailed ? (
+        <div className="card border border-destructive/40 bg-destructive/10">
+          <p className="font-semibold text-destructive">Audit failed before completion.</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Use Settings → Cloud Diagnostics to verify backend dependencies.
+          </p>
+        </div>
+      ) : null}
+
       <div className="grid md:grid-cols-3 gap-6">
         <div className="md:col-span-2 flex flex-col gap-6">
           <AuditMetricsRow
-            protectedAttribute={report.protectedAttribute}
+            protectedAttribute={report.protectedAttribute || "Pending"}
             totalRecords={report.totalRecords}
             overallApprovalRate={report.overallApprovalRate}
+            isPending={isProcessing}
           />
 
           <ApprovalRatesChart disparities={report.disparities} />

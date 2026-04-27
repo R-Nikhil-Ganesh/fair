@@ -35,10 +35,10 @@ export function RecentAuditsTable({ audits }: { audits: AuditViewModel[] }) {
                 <tr key={audit.id}>
                   <td className="font-medium">
                     <Link href={`/dashboard/audit/${audit.id}`} className="hover:text-primary hover:underline">
-                      {audit.datasetName}
+                      {audit.datasetName || `Audit ${audit.id.slice(0, 8)}`}
                     </Link>
                   </td>
-                  <td>{audit.protectedAttribute}</td>
+                  <td>{audit.protectedAttribute || "Pending"}</td>
                   <td className="text-muted-foreground">{new Date(audit.date).toLocaleDateString()}</td>
                   <td>
                     {audit.status === "processing" ? (

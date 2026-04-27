@@ -32,8 +32,8 @@ export function AuditHistoryTable({
           ) : audits.length > 0 ? (
             audits.map((audit) => (
               <tr key={audit.id}>
-                <td className="font-medium">{audit.datasetName}</td>
-                <td>{audit.protectedAttribute}</td>
+                <td className="font-medium">{audit.datasetName || `Audit ${audit.id.slice(0, 8)}`}</td>
+                <td>{audit.protectedAttribute || "Pending"}</td>
                 <td className="text-muted-foreground">{new Date(audit.date).toLocaleDateString()}</td>
                 <td>
                   {audit.status === "processing" ? (
@@ -44,7 +44,9 @@ export function AuditHistoryTable({
                     <StatusBadge label="Passed" variant="pass" />
                   )}
                 </td>
-                <td className="text-muted-foreground">{audit.totalRecords.toLocaleString()}</td>
+                <td className="text-muted-foreground">
+                  {audit.totalRecords > 0 ? audit.totalRecords.toLocaleString() : "--"}
+                </td>
                 <td className="text-right">
                   <Link
                     href={`/dashboard/audit/${audit.id}`}

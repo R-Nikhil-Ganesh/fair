@@ -2,6 +2,8 @@ import { FileText, Lightbulb, Sparkles } from "lucide-react";
 import type { AuditReport } from "@/lib/types";
 
 export function AuditInsights({ report }: { report: AuditReport }) {
+  const isProcessing = report.status === "processing";
+
   return (
     <div className="flex flex-col gap-6">
       <div className="card relative overflow-hidden">
@@ -14,7 +16,9 @@ export function AuditInsights({ report }: { report: AuditReport }) {
           <h2 className="text-lg">Narrative Insight</h2>
         </div>
         <p className="text-sm leading-relaxed">
-          {report.geminiSummary || "No summary generated for this audit."}
+          {isProcessing
+            ? "Narrative is pending while cloud workers finish the fairness computation."
+            : report.geminiSummary || "No summary generated for this audit."}
         </p>
       </div>
 
@@ -35,7 +39,9 @@ export function AuditInsights({ report }: { report: AuditReport }) {
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-muted-foreground">No mitigation steps were returned.</p>
+          <p className="text-sm text-muted-foreground">
+            {isProcessing ? "Mitigation steps will appear after processing completes." : "No mitigation steps were returned."}
+          </p>
         )}
       </div>
 
@@ -45,7 +51,9 @@ export function AuditInsights({ report }: { report: AuditReport }) {
           <h2 className="text-lg">Detailed Metrics</h2>
         </div>
         <div className="flex flex-col gap-3">
-          {report.disparities.map((disparity) => (
+          {report.disparities.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No group disparity metrics available yet.</p>
+          ) : report.disparities.map((disparity) => (
             <div
               key={disparity.group}
               className="flex items-center justify-between p-2 rounded hover:bg-muted transition-colors"

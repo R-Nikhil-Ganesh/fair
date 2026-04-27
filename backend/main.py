@@ -1,4 +1,5 @@
 import os
+from datetime import datetime, timezone
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal
@@ -6,6 +7,7 @@ from typing import Literal
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from google.cloud import firestore
+from google.cloud import storage
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from slowapi import Limiter
@@ -16,6 +18,7 @@ from slowapi.util import get_remote_address
 
 load_dotenv(dotenv_path=Path(__file__).with_name(".env"))
 
+from celery_worker import app as celery_app
 from celery_worker import run_audit_task, run_model_audit_task
 
 
@@ -138,3 +141,68 @@ async def get_audit_status(request: Request, audit_id: str, uid: str = Query(...
 @app.get("/api/health")
 async def health_check():
 	return {"status": "ok", "version": "1.0.0"}
+
+
+@app.get("/api/cloud/health")
+@limiter.limit("30/minute")
+async def cloud_health_check(request: Request):
+	services: dict[str, dict[str, str | bool]] = {}
+
+	try:
+		db = _get_firestore_client()
+		list(db.collection("__health").limit(1).stream())
+		services["firestore"] = {"ok": True, "message": "Reachable"}
+	except Exception as exc:  # noqa: BLE001
+		services["firestore"] = {"ok": False, "message": str(exc)}
+
+	bucket_name = os.getenv("FIREBASE_STORAGE_BUCKET", "").strip()
+	if not bucket_name:
+		services["storage"] = {
+			"ok": False,
+			"message": "FIREBASE_STORAGE_BUCKET is not configured",
+		}
+	else:
+		try:
+			storage_client = storage.Client()
+			bucket = storage_client.bucket(bucket_name)
+			if bucket.exists():
+				services["storage"] = {"ok": True, "message": f"Bucket reachable: {bucket_name}"}
+			else:
+				services["storage"] = {"ok": False, "message": f"Bucket not found: {bucket_name}"}
+		except Exception as exc:  # noqa: BLE001
+			services["storage"] = {"ok": False, "message": str(exc)}
+
+	redis_url = os.getenv("REDIS_URL", "").strip()
+	if not redis_url:
+		services["celeryBroker"] = {
+			"ok": False,
+			"message": "REDIS_URL is not configured",
+		}
+	else:
+		try:
+			with celery_app.connection_or_acquire() as connection:
+				connection.ensure_connection(max_retries=1)
+			services["celeryBroker"] = {"ok": True, "message": "Broker reachable"}
+		except Exception as exc:  # noqa: BLE001
+			services["celeryBroker"] = {"ok": False, "message": str(exc)}
+
+	project_id = os.getenv("GOOGLE_CLOUD_PROJECT", "").strip()
+	vertex_location = os.getenv("VERTEX_AI_LOCATION", "us-central1").strip()
+	if not project_id:
+		services["gemini"] = {
+			"ok": False,
+			"message": "GOOGLE_CLOUD_PROJECT is not configured",
+		}
+	else:
+		services["gemini"] = {
+			"ok": True,
+			"message": f"Configured for project '{project_id}' in '{vertex_location}'",
+		}
+
+	overall_ok = all(bool(service.get("ok")) for service in services.values())
+
+	return {
+		"status": "ok" if overall_ok else "degraded",
+		"checkedAt": datetime.now(timezone.utc).isoformat(),
+		"services": services,
+	}

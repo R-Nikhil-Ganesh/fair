@@ -30,6 +30,22 @@ export async function uploadAndStartAudit(
   const trace = getPerformanceTrace("csv_upload_and_audit_start");
   trace.start();
 
+  const normalizeUploadError = (error: unknown): Error => {
+    if (error instanceof Error) return error;
+    if (typeof error === "string") return new Error(error);
+    if (typeof error === "object" && error !== null) {
+      const code = (error as { code?: unknown }).code;
+      const message = (error as { message?: unknown }).message;
+      if (typeof code === "string" && typeof message === "string") {
+        return new Error(`${code}: ${message}`);
+      }
+      if (typeof message === "string") {
+        return new Error(message);
+      }
+    }
+    return new Error("Upload failed unexpectedly.");
+  };
+
   // Generate audit ID
   const auditRef = doc(collection(db, "audits", config.uid, "audits"));
   const auditId = auditRef.id;
@@ -60,14 +76,51 @@ export async function uploadAndStartAudit(
 
   await new Promise<void>((resolve, reject) => {
     const uploadTask = uploadBytesResumable(storageRef, file);
+    const UPLOAD_INACTIVITY_TIMEOUT_MS = 60000;
+    let timeoutHandle: ReturnType<typeof setTimeout>;
+    let settled = false;
+
+    const rejectOnce = (reason: Error) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeoutHandle);
+      reject(reason);
+    };
+
+    const resolveOnce = () => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeoutHandle);
+      resolve();
+    };
+
+    const resetTimeout = () => {
+      clearTimeout(timeoutHandle);
+      timeoutHandle = setTimeout(() => {
+        try {
+          uploadTask.cancel();
+        } catch {
+          // Best effort cancel; continue with timeout error either way.
+        }
+        rejectOnce(
+          new Error(
+            "Upload timed out while waiting for Firebase Storage progress. Check Storage bucket config, Firebase rules, App Check, and network connectivity.",
+          ),
+        );
+      }, UPLOAD_INACTIVITY_TIMEOUT_MS);
+    };
+
+    resetTimeout();
+
     uploadTask.on(
       "state_changed",
       (snapshot) => {
+        resetTimeout();
         const pct = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
         onProgress(pct);
       },
-      reject,
-      () => resolve()
+      (error) => rejectOnce(normalizeUploadError(error)),
+      () => resolveOnce()
     );
   });
 

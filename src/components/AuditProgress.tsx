@@ -52,12 +52,12 @@ export function AuditProgress({ uid, auditId, onComplete, onError }: AuditProgre
 
   if (!audit) {
     return (
-      <div className="flex items-center gap-3 py-8" role="status" aria-label="Starting audit">
+      <div className="audit-progress-shell audit-progress-starting" role="status" aria-label="Starting audit">
         <div
-          className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"
+          className="audit-progress-spinner w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"
           aria-hidden="true"
         />
-        <span className="text-gray-600">Starting audit...</span>
+        <span className="audit-progress-start-label text-gray-600">Starting audit...</span>
       </div>
     );
   }
@@ -67,14 +67,14 @@ export function AuditProgress({ uid, auditId, onComplete, onError }: AuditProgre
   const isError = audit.status === "error";
 
   return (
-    <div className="py-6" role="status" aria-label={`Audit progress: ${progress}%`}>
-      <div className="flex justify-between items-center mb-2">
-        <span className="text-sm font-medium text-gray-700">{stepLabel}</span>
-        <span className="text-sm text-gray-500">{progress}%</span>
+    <div className="audit-progress-shell py-6" role="status" aria-label={`Audit progress: ${progress}%`}>
+      <div className="audit-progress-header flex justify-between items-center mb-2">
+        <span className="audit-progress-step text-sm font-medium text-gray-700">{stepLabel}</span>
+        <span className="audit-progress-percent text-sm text-gray-500">{progress}%</span>
       </div>
 
       <div
-        className="h-2 bg-gray-200 rounded-full overflow-hidden"
+        className="audit-progress-track h-2 bg-gray-200 rounded-full overflow-hidden"
         role="progressbar"
         aria-valuenow={progress}
         aria-valuemin={0}
@@ -82,7 +82,7 @@ export function AuditProgress({ uid, auditId, onComplete, onError }: AuditProgre
         aria-label="Audit completion progress"
       >
         <div
-          className={`h-full rounded-full transition-all duration-500 ${
+          className={`audit-progress-fill h-full rounded-full transition-all duration-500 ${
             isError ? "bg-red-500" : "bg-blue-600"
           }`}
           style={{ width: `${progress}%` }}
@@ -91,14 +91,14 @@ export function AuditProgress({ uid, auditId, onComplete, onError }: AuditProgre
 
       {isError && (
         <div
-          className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700"
+          className="audit-progress-error mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700"
           role="alert"
         >
           {audit.error ?? "An error occurred. Please try again."}
         </div>
       )}
 
-      <ol className="mt-6 space-y-2" aria-label="Pipeline steps">
+      <ol className="audit-progress-steps mt-6 space-y-2" aria-label="Pipeline steps">
         {Object.entries(STEP_LABELS)
           .slice(1)
           .map(([key, label]) => {
@@ -116,9 +116,9 @@ export function AuditProgress({ uid, auditId, onComplete, onError }: AuditProgre
             const isActive = audit.currentStep === key;
 
             return (
-              <li key={key} className="flex items-center gap-3 text-sm">
+              <li key={key} className="audit-progress-step-row flex items-center gap-3 text-sm">
                 <span
-                  className={`w-5 h-5 rounded-full flex items-center justify-center text-xs shrink-0 ${
+                  className={`audit-progress-step-dot w-5 h-5 rounded-full flex items-center justify-center text-xs shrink-0 ${
                     isDone
                       ? "bg-green-100 text-green-700"
                       : isActive

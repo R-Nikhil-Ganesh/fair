@@ -43,3 +43,5 @@ next-env.d.ts
 /backend/__pycache__
 
 /functions/node_modules
+/functions/firebase-debug.log
+/functions/func_logs.txt

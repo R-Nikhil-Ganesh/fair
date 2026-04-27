@@ -10,9 +10,9 @@ export function AuditHistoryTable({
   loading: boolean;
 }) {
   return (
-    <div className="table-container border rounded-lg border-border">
+    <div className="table-container border rounded-xl border-border/80 overflow-hidden shadow-sm bg-white">
       <table>
-        <thead className="bg-muted">
+        <thead className="bg-slate-50">
           <tr>
             <th>Dataset Name</th>
             <th>Protected Attribute</th>
@@ -31,9 +31,9 @@ export function AuditHistoryTable({
             </tr>
           ) : audits.length > 0 ? (
             audits.map((audit) => (
-              <tr key={audit.id}>
-                <td className="font-medium">{audit.datasetName || `Audit ${audit.id.slice(0, 8)}`}</td>
-                <td>{audit.protectedAttribute || "Pending"}</td>
+              <tr key={audit.id} className="hover:bg-slate-50/80 transition-colors">
+                <td className="font-medium text-slate-800">{audit.datasetName || `Audit ${audit.id.slice(0, 8)}`}</td>
+                <td className="text-slate-700">{audit.protectedAttribute || "Pending"}</td>
                 <td className="text-muted-foreground">{new Date(audit.date).toLocaleDateString()}</td>
                 <td>
                   {audit.status === "processing" ? (
@@ -50,7 +50,7 @@ export function AuditHistoryTable({
                 <td className="text-right">
                   <Link
                     href={`/dashboard/audit/${audit.id}`}
-                    className="text-primary font-medium hover:underline text-sm"
+                    className="text-primary font-semibold hover:underline text-sm"
                   >
                     View Report
                   </Link>

@@ -134,13 +134,13 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
   const totalSteps = piiWarnings.length > 0 ? 4 : 3;
 
   return (
-    <div className="max-w-2xl mx-auto" role="main" aria-label="Audit setup wizard">
-      <nav aria-label="Setup progress" className="mb-8">
-        <ol className="flex items-center gap-2">
+    <div className="onboarding-wizard" role="main" aria-label="Audit setup wizard">
+      <nav aria-label="Setup progress" className="wizard-progress">
+        <ol className="wizard-progress-list">
           {STEP_LABELS.slice(0, totalSteps).map((label, i) => (
-            <li key={label} className="flex items-center gap-2 flex-1">
+            <li key={label} className="wizard-progress-item">
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium shrink-0 ${
+                className={`wizard-progress-step w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium shrink-0 ${
                   i + 1 < step
                     ? "bg-green-600 text-white"
                     : i + 1 === step
@@ -151,38 +151,38 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
               >
                 {i + 1 < step ? "✓" : i + 1}
               </div>
-              <span className={`text-sm hidden sm:block ${i + 1 === step ? "font-medium" : "text-gray-500"}`}>
+              <span className={`wizard-progress-label text-sm hidden sm:block ${i + 1 === step ? "font-medium" : "text-gray-500"}`}>
                 {label}
               </span>
-              {i < totalSteps - 1 && <div className="flex-1 h-px bg-gray-200" />}
+              {i < totalSteps - 1 && <div className="wizard-progress-connector" />}
             </li>
           ))}
         </ol>
       </nav>
 
       {step === 1 && (
-        <section aria-labelledby="step1-heading">
-          <h2 id="step1-heading" className="text-xl font-semibold mb-2">
+        <section aria-labelledby="step1-heading" className="wizard-section">
+          <h2 id="step1-heading" className="wizard-title">
             What are you auditing?
           </h2>
-          <p className="text-gray-600 mb-6 text-sm">
+          <p className="wizard-description">
             Select the domain that matches your decision system. This sets the legal thresholds
             used for bias flagging.
           </p>
-          <div className="grid gap-4">
+          <div className="wizard-grid">
             {DOMAINS.map((d) => (
               <button
                 key={d.key}
                 type="button"
                 onClick={() => handleDomainSelect(d.key)}
-                className={`text-left p-4 rounded-xl border-2 transition-all hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                className={`wizard-domain-card text-left p-4 rounded-xl border-2 transition-all hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                   domain === d.key ? d.color : "border-gray-200 hover:border-gray-300"
                 }`}
                 aria-pressed={domain === d.key}
               >
-                <div className="font-semibold text-gray-900">{d.label}</div>
-                <div className="text-sm text-gray-600 mt-1">{d.description}</div>
-                <div className="text-xs text-gray-400 mt-2">Legal basis: {d.legalRef}</div>
+                <div className="wizard-card-title font-semibold text-gray-900">{d.label}</div>
+                <div className="wizard-card-text text-sm text-gray-600 mt-1">{d.description}</div>
+                <div className="wizard-card-meta text-xs text-gray-400 mt-2">Legal basis: {d.legalRef}</div>
               </button>
             ))}
           </div>
@@ -190,15 +190,15 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
       )}
 
       {step === 2 && domain && (
-        <section aria-labelledby="step2-heading">
-          <h2 id="step2-heading" className="text-xl font-semibold mb-2">
+        <section aria-labelledby="step2-heading" className="wizard-section">
+          <h2 id="step2-heading" className="wizard-title">
             Choose your data source
           </h2>
-          <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="wizard-source-grid">
             <button
               type="button"
               onClick={() => setDataSource("upload")}
-              className={`p-4 rounded-xl border-2 text-left transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              className={`wizard-source-card p-4 rounded-xl border-2 text-left transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 dataSource === "upload" ? "border-blue-500 bg-blue-50" : "border-gray-200"
               }`}
               aria-pressed={dataSource === "upload"}
@@ -209,7 +209,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
             <button
               type="button"
               onClick={() => setDataSource("sample")}
-              className={`p-4 rounded-xl border-2 text-left transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              className={`wizard-source-card p-4 rounded-xl border-2 text-left transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 dataSource === "sample" ? "border-blue-500 bg-blue-50" : "border-gray-200"
               }`}
               aria-pressed={dataSource === "sample"}
@@ -220,8 +220,8 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
           </div>
 
           {dataSource === "upload" && (
-            <div>
-              <label htmlFor="csv-upload" className="block text-sm font-medium mb-2">
+            <div className="wizard-upload-panel">
+              <label htmlFor="csv-upload" className="wizard-label block text-sm font-medium mb-2">
                 Select CSV file
               </label>
               <input
@@ -230,14 +230,14 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                 accept=".csv"
                 onChange={handleFileChange}
                 disabled={isParsingCSV}
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                className="wizard-file-input block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                 aria-describedby="csv-upload-help"
               />
-              <p id="csv-upload-help" className="text-xs text-gray-400 mt-2">
+              <p id="csv-upload-help" className="wizard-help text-xs text-gray-400 mt-2">
                 CSV must have a header row. Column names will be auto-detected.
               </p>
               {isParsingCSV && (
-                <p className="text-sm text-blue-600 mt-2" role="status">
+                <p className="wizard-status text-sm text-blue-600 mt-2" role="status">
                   Parsing CSV...
                 </p>
               )}
@@ -245,13 +245,13 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
           )}
 
           {dataSource === "sample" && (
-            <div className="grid gap-3">
+            <div className="wizard-grid">
               {SAMPLE_DATASETS.filter((d) => d.domain === domain || domain === "lending").map((sample) => (
                 <button
                   key={sample.key}
                   type="button"
                   onClick={() => handleSampleSelect(sample)}
-                  className="text-left p-4 rounded-xl border border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="wizard-sample-card text-left p-4 rounded-xl border border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <div className="flex justify-between items-start">
                     <div>
@@ -276,18 +276,18 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
       )}
 
       {step === 3 && (
-        <section aria-labelledby="step3-heading">
-          <h2 id="step3-heading" className="text-xl font-semibold mb-2">
+        <section aria-labelledby="step3-heading" className="wizard-section">
+          <h2 id="step3-heading" className="wizard-title">
             Map your columns
           </h2>
-          <p className="text-gray-600 text-sm mb-6">
+          <p className="wizard-description">
             Tell FairLens which column contains the protected attribute (e.g. gender, race) and
             which column contains the decision outcome.
           </p>
 
-          <div className="space-y-5">
+          <div className="wizard-form-stack">
             <div>
-              <label htmlFor="protected-attr" className="block text-sm font-medium mb-1">
+              <label htmlFor="protected-attr" className="wizard-label block text-sm font-medium mb-1">
                 Protected attribute column
                 <span className="text-gray-400 font-normal ml-1">
                   (the demographic variable to audit)
@@ -297,7 +297,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                 id="protected-attr"
                 value={protectedAttribute}
                 onChange={(e) => setProtectedAttribute(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="wizard-select w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 aria-required="true"
               >
                 <option value="">Select column...</option>
@@ -310,7 +310,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
             </div>
 
             <div>
-              <label htmlFor="target-col" className="block text-sm font-medium mb-1">
+              <label htmlFor="target-col" className="wizard-label block text-sm font-medium mb-1">
                 Decision outcome column
                 <span className="text-gray-400 font-normal ml-1">
                   (the column containing approved/denied, 0/1, etc.)
@@ -320,7 +320,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                 id="target-col"
                 value={targetColumn}
                 onChange={(e) => setTargetColumn(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="wizard-select w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 aria-required="true"
               >
                 <option value="">Select column...</option>
@@ -344,7 +344,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                     key={val}
                     type="button"
                     onClick={() => setFavorableLabel(val)}
-                    className={`px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    className={`wizard-chip-button px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                       favorableLabel === val
                         ? "border-blue-500 bg-blue-50 text-blue-700"
                         : "border-gray-200 text-gray-700"
@@ -362,7 +362,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
             type="button"
             onClick={handleColumnMappingNext}
             disabled={!protectedAttribute || !targetColumn}
-            className="mt-8 w-full bg-blue-600 text-white py-3 rounded-xl font-medium hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all"
+            className="wizard-primary-button mt-8 w-full bg-blue-600 text-white py-3 rounded-xl font-medium hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all"
           >
             {piiWarnings.length > 0 ? "Review PII Warning →" : "Start Audit →"}
           </button>
@@ -370,9 +370,9 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
       )}
 
       {step === 4 && piiWarnings.length > 0 && (
-        <section aria-labelledby="step4-heading" role="alert">
-          <div className="bg-amber-50 border-2 border-amber-400 rounded-xl p-5 mb-6">
-            <h2 id="step4-heading" className="text-lg font-semibold text-amber-900 mb-2">
+        <section aria-labelledby="step4-heading" role="alert" className="wizard-section">
+          <div className="wizard-pii-panel bg-amber-50 border-2 border-amber-400 rounded-xl p-5 mb-6">
+            <h2 id="step4-heading" className="wizard-title text-lg font-semibold text-amber-900 mb-2">
               Potential PII detected
             </h2>
             <p className="text-sm text-amber-800 mb-4">
@@ -405,7 +405,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
             type="button"
             onClick={handleComplete}
             disabled={!piiAcknowledged}
-            className="mt-6 w-full bg-blue-600 text-white py-3 rounded-xl font-medium hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="wizard-primary-button mt-6 w-full bg-blue-600 text-white py-3 rounded-xl font-medium hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           >
             Acknowledge and Start Audit →
           </button>

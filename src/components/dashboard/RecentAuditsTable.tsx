@@ -5,17 +5,17 @@ import type { AuditViewModel } from "@/components/dashboard/types";
 
 export function RecentAuditsTable({ audits }: { audits: AuditViewModel[] }) {
   return (
-    <div className="card">
+    <div className="card bg-gradient-to-br from-white to-slate-50 border-border/80 shadow-sm">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg">Recent Audits</h2>
-        <Link href="/dashboard/history" className="text-sm text-primary hover:underline">
+        <Link href="/dashboard/history" className="text-sm text-primary font-semibold hover:underline">
           View All
         </Link>
       </div>
 
-      <div className="table-container">
+      <div className="table-container rounded-lg border border-border/70 overflow-hidden bg-white">
         <table>
-          <thead>
+          <thead className="bg-slate-50">
             <tr>
               <th>Dataset</th>
               <th>Protected Attr</th>
@@ -32,9 +32,9 @@ export function RecentAuditsTable({ audits }: { audits: AuditViewModel[] }) {
               </tr>
             ) : (
               audits.slice(0, 5).map((audit) => (
-                <tr key={audit.id}>
+                <tr key={audit.id} className="hover:bg-slate-50/80 transition-colors">
                   <td className="font-medium">
-                    <Link href={`/dashboard/audit/${audit.id}`} className="hover:text-primary hover:underline">
+                    <Link href={`/dashboard/audit/${audit.id}`} className="hover:text-primary hover:underline text-slate-800">
                       {audit.datasetName || `Audit ${audit.id.slice(0, 8)}`}
                     </Link>
                   </td>

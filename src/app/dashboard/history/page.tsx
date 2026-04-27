@@ -50,21 +50,26 @@ export default function HistoryPage() {
         subtitle="View, search, and review previous fairness evaluations."
       />
 
-      <div className="card flex flex-col gap-4">
-        <div className="flex items-center justify-between gap-4">
+      <div className="card flex flex-col gap-4 bg-gradient-to-br from-white via-slate-50/60 to-white border-border/80 shadow-sm">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
             <input 
               type="text" 
               placeholder="Search by dataset name or attribute..." 
-              className="form-input w-full pl-10"
+              className="form-input w-full pl-10 bg-white border-border/80 shadow-sm"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <button className="btn btn-secondary flex items-center gap-2">
+          <button className="btn btn-secondary flex items-center gap-2 bg-white border-border/80 shadow-sm">
             <Filter size={16} /> Filter
           </button>
+        </div>
+
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span className="inline-flex rounded-full border border-border bg-white px-2 py-1">Total: {audits.length}</span>
+          <span className="inline-flex rounded-full border border-border bg-white px-2 py-1">Visible: {historyView.length}</span>
         </div>
 
         <AuditHistoryTable audits={historyView} loading={loading} />

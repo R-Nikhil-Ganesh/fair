@@ -68,29 +68,38 @@ export default function NewAuditPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50" id="main-content">
-      <div className="max-w-3xl mx-auto px-4 py-12">
-        <h1 className="text-2xl font-bold text-gray-900 mb-8">New fairness audit</h1>
+    <main className="audit-new-page" id="main-content">
+      <div className="audit-new-container">
+        <section className="audit-new-hero" aria-label="New fairness audit">
+          <p className="audit-new-kicker">Fairness Pipeline</p>
+          <h1 className="audit-new-title">New Fairness Audit</h1>
+          <p className="audit-new-subtitle">
+            Upload your dataset, map key columns, and run a cloud-based compliance audit.
+          </p>
+        </section>
 
         {pageState === "wizard" && (
           <OnboardingWizard onComplete={handleWizardComplete} />
         )}
 
         {pageState === "uploading" && (
-          <div className="text-center py-12">
-            <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
+          <section className="audit-state-card" aria-label="Uploading file">
+            <h2 className="audit-state-title">Uploading Dataset</h2>
+            <p className="audit-state-subtitle">Sending CSV to cloud storage and preparing the audit job.</p>
+            <div className="audit-progress-track">
               <div
-                className="bg-blue-600 h-2 rounded-full transition-all"
+                className="audit-progress-fill"
                 style={{ width: `${uploadProgress}%` }}
               />
             </div>
-            <p className="text-gray-600">Uploading... {uploadProgress}%</p>
-          </div>
+            <p className="audit-progress-label">Uploading... {uploadProgress}%</p>
+          </section>
         )}
 
         {pageState === "processing" && auditId && (
-          <div className="bg-white rounded-2xl border border-gray-200 p-8">
-            <h2 className="text-lg font-semibold mb-6">Running fairness audit</h2>
+          <section className="audit-state-card" aria-label="Running audit">
+            <h2 className="audit-state-title">Running Fairness Audit</h2>
+            <p className="audit-state-subtitle">Your job is running in the cloud pipeline.</p>
             <AuditProgress
               uid={user.uid}
               auditId={auditId}
@@ -100,21 +109,21 @@ export default function NewAuditPage() {
                 setPageState("error");
               }}
             />
-          </div>
+          </section>
         )}
 
         {pageState === "complete" && (
-          <div className="text-center py-12" role="status">
-            <div className="text-5xl mb-4">✓</div>
-            <p className="text-xl font-semibold text-green-700">Audit complete!</p>
-            <p className="text-gray-500 mt-2">Redirecting to results...</p>
-          </div>
+          <section className="audit-state-card audit-state-success" role="status">
+            <div className="audit-state-icon" aria-hidden>✓</div>
+            <p className="audit-state-title">Audit Complete</p>
+            <p className="audit-state-subtitle">Redirecting to results...</p>
+          </section>
         )}
 
         {pageState === "error" && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-6" role="alert">
-            <h2 className="font-semibold text-red-800 mb-2">Audit failed</h2>
-            <p className="text-sm text-red-700">{errorMessage}</p>
+          <section className="audit-state-card audit-state-error" role="alert">
+            <h2 className="audit-state-title">Audit Failed</h2>
+            <p className="audit-state-subtitle">{errorMessage}</p>
             <button
               type="button"
               onClick={() => {
@@ -122,11 +131,11 @@ export default function NewAuditPage() {
                 setAuditId(null);
                 setErrorMessage("");
               }}
-              className="mt-4 text-sm text-red-700 underline"
+              className="audit-link-button"
             >
               Try again
             </button>
-          </div>
+          </section>
         )}
       </div>
     </main>

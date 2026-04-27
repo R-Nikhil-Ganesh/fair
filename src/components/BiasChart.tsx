@@ -62,50 +62,52 @@ export function ApprovalRateChart({ metrics, protectedAttribute }: BiasChartProp
       <p className="text-xs text-gray-500 mb-4">
         Gap between highest and lowest group: {(maxRate - minRate).toFixed(1)} percentage points
       </p>
-      <ResponsiveContainer width="100%" height={240}>
-        <BarChart data={data} aria-label={`Approval rates by ${protectedAttribute}`}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-          <XAxis dataKey="group" tick={{ fontSize: 12 }} />
-          <YAxis
-            domain={[0, 100]}
-            tickFormatter={(v) => `${v}%`}
-            tick={{ fontSize: 12 }}
-            aria-label="Approval rate percentage"
-          />
-          <Tooltip
-            content={(props) => (
-              <CustomTooltip
-                active={props.active}
-                payload={props.payload as Array<{ value: number }> | undefined}
-                label={typeof props.label === "string" ? props.label : undefined}
-                protectedAttribute={protectedAttribute}
-                data={data}
-              />
-            )}
-          />
-          <ReferenceLine
-            y={80}
-            stroke="#ef4444"
-            strokeDasharray="4 4"
-            label={{ value: "80% rule", position: "insideTopRight", fontSize: 11, fill: "#ef4444" }}
-          />
-          <Bar dataKey="Approval rate" radius={[4, 4, 0, 0]}>
-            {data.map((entry) => (
-              <Cell
-                key={entry.group}
-                fill={
-                  entry["Approval rate"] === maxRate
-                    ? "#3b82f6"
-                    : entry["Approval rate"] === minRate
-                      ? "#ef4444"
-                      : "#94a3b8"
-                }
-                aria-label={`${entry.group}: ${entry["Approval rate"]}%`}
-              />
-            ))}
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
+      <div style={{ width: "100%", minWidth: 0 }}>
+        <ResponsiveContainer width="100%" height={240} minWidth={0}>
+          <BarChart data={data} aria-label={`Approval rates by ${protectedAttribute}`}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+            <XAxis dataKey="group" tick={{ fontSize: 12 }} />
+            <YAxis
+              domain={[0, 100]}
+              tickFormatter={(v) => `${v}%`}
+              tick={{ fontSize: 12 }}
+              aria-label="Approval rate percentage"
+            />
+            <Tooltip
+              content={(props) => (
+                <CustomTooltip
+                  active={props.active}
+                  payload={props.payload as Array<{ value: number }> | undefined}
+                  label={typeof props.label === "string" ? props.label : undefined}
+                  protectedAttribute={protectedAttribute}
+                  data={data}
+                />
+              )}
+            />
+            <ReferenceLine
+              y={80}
+              stroke="#ef4444"
+              strokeDasharray="4 4"
+              label={{ value: "80% rule", position: "insideTopRight", fontSize: 11, fill: "#ef4444" }}
+            />
+            <Bar dataKey="Approval rate" radius={[4, 4, 0, 0]}>
+              {data.map((entry) => (
+                <Cell
+                  key={entry.group}
+                  fill={
+                    entry["Approval rate"] === maxRate
+                      ? "#3b82f6"
+                      : entry["Approval rate"] === minRate
+                        ? "#ef4444"
+                        : "#94a3b8"
+                  }
+                  aria-label={`${entry.group}: ${entry["Approval rate"]}%`}
+                />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
       <p className="text-xs text-gray-400 mt-2 text-center">
         Blue = highest rate group · Red = lowest rate group · Dashed line = legal 80% threshold
       </p>

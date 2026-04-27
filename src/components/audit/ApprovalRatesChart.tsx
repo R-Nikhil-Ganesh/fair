@@ -48,8 +48,8 @@ export function ApprovalRatesChart({ disparities }: { disparities: DisparityInfo
         </div>
       </div>
 
-      <div className="h-[300px] w-full">
-        <ResponsiveContainer width="100%" height="100%">
+      <div style={{ width: "100%", minWidth: 0, height: 300 }}>
+        <ResponsiveContainer width="100%" height={300} minWidth={0}>
           <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
             <XAxis

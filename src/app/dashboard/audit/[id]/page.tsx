@@ -2,22 +2,24 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Download, Loader2, Sparkles, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Loader2, Sparkles, ShieldCheck } from "lucide-react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
-import { AuditReport } from "@/lib/types";
+import { AuditDocument, AuditReport } from "@/lib/types";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { AuditMetricsRow } from "@/components/audit/AuditMetricsRow";
 import { ApprovalRatesChart } from "@/components/audit/ApprovalRatesChart";
 import { AuditInsights } from "@/components/audit/AuditInsights";
 import { mapFirestoreAuditToReport } from "@/lib/auditReportAdapter";
+import { PdfExportButton } from "@/components/PdfExportButton";
 
 export default function AuditResultsPage() {
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
   const [report, setReport] = useState<AuditReport | null>(null);
+  const [auditDoc, setAuditDoc] = useState<AuditDocument | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -27,7 +29,9 @@ export default function AuditResultsPage() {
         const docRef = doc(db, "audits", user.uid, "audits", params.id as string);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-          setReport(mapFirestoreAuditToReport(docSnap.id, docSnap.data() as Record<string, unknown>));
+          const raw = docSnap.data() as Record<string, unknown>;
+          setReport(mapFirestoreAuditToReport(docSnap.id, raw));
+          setAuditDoc({ auditId: docSnap.id, ...(raw as Omit<AuditDocument, "auditId">) });
         } else {
           console.error("No such document!");
         }
@@ -84,9 +88,13 @@ export default function AuditResultsPage() {
             </div>
           </div>
         </div>
-        <button className="btn btn-secondary flex items-center gap-2 bg-white/90 border-border shadow-sm" disabled={isProcessing || isFailed}>
-          <Download size={16} /> Export PDF
-        </button>
+        {auditDoc ? (
+          <PdfExportButton audit={auditDoc} />
+        ) : (
+          <button className="btn btn-secondary flex items-center gap-2 bg-white/90 border-border shadow-sm" disabled>
+            Export PDF
+          </button>
+        )}
       </div>
       </div>
 

@@ -1,6 +1,37 @@
 import { Document, Page, Text, View, StyleSheet, pdf } from "@react-pdf/renderer";
 import type { AuditDocument } from "@/lib/types";
 
+function readNumber(source: Record<string, unknown> | undefined, ...keys: string[]): number | null {
+  if (!source) return null;
+
+  for (const key of keys) {
+    const value = source[key];
+    if (typeof value === "number" && Number.isFinite(value)) {
+      return value;
+    }
+  }
+
+  return null;
+}
+
+function formatMetric(value: number | null, digits = 3): string {
+  if (value === null) return "--";
+  return value.toFixed(digits);
+}
+
+function readString(source: Record<string, unknown> | undefined, ...keys: string[]): string {
+  if (!source) return "";
+
+  for (const key of keys) {
+    const value = source[key];
+    if (typeof value === "string" && value.trim()) {
+      return value;
+    }
+  }
+
+  return "";
+}
+
 const styles = StyleSheet.create({
   page: { padding: 48, fontFamily: "Helvetica", fontSize: 10, color: "#1f2937" },
   header: { marginBottom: 24 },
@@ -43,8 +74,23 @@ const styles = StyleSheet.create({
 
 function AuditPDFDoc({ audit }: { audit: AuditDocument }) {
   const r = audit.results;
-  const m = r?.fairnessMetrics;
+  const m = r?.fairnessMetrics as Record<string, unknown> | undefined;
   const g = r?.geminiOutput;
+
+  const disparateImpactRatio = readNumber(m, "disparateImpactRatio", "disparate_impact_ratio");
+  const demographicParityDifference = readNumber(
+    m,
+    "demographicParityDifference",
+    "demographic_parity_difference"
+  );
+  const equalizedOddsDifference = readNumber(m, "equalizedOddsDifference", "equalized_odds_difference");
+  const statisticalParityDifference = readNumber(
+    m,
+    "statisticalParityDifference",
+    "statistical_parity_difference"
+  );
+  const overallStatus = readString(m, "overallStatus", "overall_status");
+
   const now = new Date().toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
@@ -72,10 +118,10 @@ function AuditPDFDoc({ audit }: { audit: AuditDocument }) {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Fairness metrics</Text>
             {[
-              ["Disparate impact ratio", m.disparateImpactRatio.toFixed(3)],
-              ["Demographic parity difference", m.demographicParityDifference.toFixed(3)],
-              ["Equalized odds difference", m.equalizedOddsDifference.toFixed(3)],
-              ["Statistical parity difference", m.statisticalParityDifference.toFixed(3)],
+              ["Disparate impact ratio", formatMetric(disparateImpactRatio)],
+              ["Demographic parity difference", formatMetric(demographicParityDifference)],
+              ["Equalized odds difference", formatMetric(equalizedOddsDifference)],
+              ["Statistical parity difference", formatMetric(statisticalParityDifference)],
             ].map(([label, value]) => (
               <View key={label} style={styles.metricRow}>
                 <Text style={styles.metricLabel}>{label}</Text>
@@ -88,20 +134,20 @@ function AuditPDFDoc({ audit }: { audit: AuditDocument }) {
                 style={{
                   ...styles.badge,
                   backgroundColor:
-                    m.overallStatus === "fail"
+                    overallStatus === "fail"
                       ? "#fef2f2"
-                      : m.overallStatus === "warning"
+                      : overallStatus === "warning"
                         ? "#fffbeb"
                         : "#f0fdf4",
                   color:
-                    m.overallStatus === "fail"
+                    overallStatus === "fail"
                       ? "#b91c1c"
-                      : m.overallStatus === "warning"
+                      : overallStatus === "warning"
                         ? "#92400e"
                         : "#166534",
                 }}
               >
-                {m.overallStatus.toUpperCase()}
+                {(overallStatus || "unknown").toUpperCase()}
               </Text>
             </View>
           </View>

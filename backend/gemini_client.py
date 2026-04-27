@@ -14,7 +14,7 @@ vertexai.init(
 	project=project_id,
 	location=os.environ.get("VERTEX_AI_LOCATION", "us-central1"),
 )
-model = GenerativeModel("gemini-1.5-flash")
+model = GenerativeModel("gemini-2.5-flash")
 
 
 @dataclass

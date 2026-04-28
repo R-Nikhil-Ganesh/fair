@@ -142,8 +142,8 @@ function GroupedApprovalChart({ report }: { report: AuditReport }) {
           </span>
         )}
       </div>
-      <ResponsiveContainer width="100%" height={220}>
-        <BarChart data={data} barGap={4}>
+      <ResponsiveContainer width="100%" height={250}>
+        <BarChart data={data} barGap={4} margin={{ top: 8, right: 8, left: 0, bottom: 8 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
           <XAxis dataKey="group" tick={{ fontSize: 11, fill: C.sub }} />
           <YAxis domain={[0, 100]} tickFormatter={v => `${v}%`} tick={{ fontSize: 11, fill: C.sub }} />
@@ -151,17 +151,14 @@ function GroupedApprovalChart({ report }: { report: AuditReport }) {
             contentStyle={{ background: "#09090b", border: `1px solid ${C.border}`, borderRadius: "0.5rem", fontSize: "0.78rem" }}
             formatter={(v: number) => [`${v}%`]}
           />
-          <ReferenceLine y={80} stroke="rgba(239,68,68,0.5)" strokeDasharray="5 3" label={{ value: "80% rule", fill: C.fail, fontSize: 10 }} />
-          <Legend wrapperStyle={{ color: C.sub, fontSize: "0.78rem" }} />
+          <ReferenceLine y={80} stroke="rgba(239,68,68,0.5)" strokeDasharray="5 3" label={{ value: "80% rule", fill: C.fail, fontSize: 10, position: "insideTopRight" }} />
+          <Legend verticalAlign="top" wrapperStyle={{ color: C.sub, fontSize: "0.78rem", paddingBottom: "0.5rem" }} />
           <Bar dataKey="Historical" radius={[4, 4, 0, 0]} fill={C.hist}>
             {data.map((d, i) => <Cell key={i} fill={d.flagged ? C.fail : C.hist} />)}
           </Bar>
           {hasModel && <Bar dataKey="Model" radius={[4, 4, 0, 0]} fill={C.model} />}
         </BarChart>
       </ResponsiveContainer>
-      <p style={{ fontSize: "0.68rem", color: "#3f3f46", marginTop: "0.5rem", textAlign: "center" }}>
-        Historical = baseline dataset · {hasModel ? "Model = predicted outcomes · " : ""}Dashed = 80% legal threshold
-      </p>
 
       {/* flagged warning */}
       {report.disparities.some(d => d.flagged) && (

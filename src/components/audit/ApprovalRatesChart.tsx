@@ -52,7 +52,7 @@ function SingleBarChart({
         {label}
       </p>
       <ResponsiveContainer width="100%" height={220} minWidth={0}>
-        <BarChart data={data} margin={{ top: 10, right: 16, left: 0, bottom: 4 }}>
+        <BarChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#27272a" />
           <XAxis dataKey="name" tick={AXIS_TICK} axisLine={false} tickLine={false} />
           <YAxis

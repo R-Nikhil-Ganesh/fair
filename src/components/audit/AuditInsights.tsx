@@ -173,37 +173,6 @@ export function AuditInsights({
 
   return (
     <>
-      <div style={{ display: "flex", flexDirection: "column", gap: "0.625rem" }}>
-        <TriggerButton
-          onClick={() => setSummaryOpen(true)}
-          icon={<Sparkles size={15} style={{ color: "#60a5fa", flexShrink: 0 }} />}
-          label="AI Executive Summary"
-          sub={isProcessing ? "Pending…" : "Gemini bias narrative"}
-          borderColor="#3b82f6"
-          bgColor="rgba(59,130,246,0.07)"
-        />
-
-        <TriggerButton
-          onClick={() => setActionOpen(true)}
-          icon={<ChevronRight size={15} style={{ color: "#34d399", flexShrink: 0 }} />}
-          label="Action Plan"
-          sub={recCount > 0 ? `${recCount} mitigation steps` : isProcessing ? "Pending…" : "No steps returned"}
-          borderColor="#10b981"
-          bgColor="rgba(16,185,129,0.07)"
-        />
-
-        {counterfactual && (
-          <TriggerButton
-            onClick={() => setCfOpen(true)}
-            icon={<TerminalSquare size={15} style={{ color: "#c084fc", flexShrink: 0 }} />}
-            label="Counterfactual Interrogation"
-            sub="Model fairness log"
-            borderColor="#a855f7"
-            bgColor="rgba(168,85,247,0.07)"
-          />
-        )}
-      </div>
-
       {/* Executive Summary Modal */}
       <Modal
         open={summaryOpen}

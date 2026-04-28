@@ -119,8 +119,8 @@ function ApprovalComparison({ modelAudit, protectedAttribute }: { modelAudit: Au
         Approval Rate by {protectedAttribute}
         {showBoth ? " — Historical vs Model" : ""}
       </SectionHead>
-      <ResponsiveContainer width="100%" height={220}>
-        <BarChart data={data} barGap={4}>
+      <ResponsiveContainer width="100%" height={240}>
+        <BarChart data={data} barGap={4} margin={{ top: 8, right: 8, left: 0, bottom: 8 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
           <XAxis dataKey="group" tick={{ fontSize: 11, fill: C.subtext }} />
           <YAxis domain={[0, 100]} tickFormatter={v => `${v}%`} tick={{ fontSize: 11, fill: C.subtext }} />
@@ -129,7 +129,7 @@ function ApprovalComparison({ modelAudit, protectedAttribute }: { modelAudit: Au
             labelStyle={{ color: C.text }}
             formatter={(v: number) => [`${v}%`]}
           />
-          <Legend wrapperStyle={{ color: C.subtext, fontSize: "0.78rem" }} />
+          <Legend verticalAlign="top" wrapperStyle={{ color: C.subtext, fontSize: "0.78rem", paddingBottom: "0.5rem" }} />
           {Object.keys(histRates).length > 0 && <Bar dataKey="Historical" radius={[4,4,0,0]} fill={C.historical} />}
           {Object.keys(modRates).length  > 0 && <Bar dataKey="Model"      radius={[4,4,0,0]} fill={C.model} />}
         </BarChart>
@@ -155,7 +155,6 @@ function PredictionDonut({ counts }: { counts: Record<string, number> }) {
           <Pie data={data} cx={85} cy={85} innerRadius={52} outerRadius={80} paddingAngle={3} dataKey="value">
             {data.map((d, i) => <Cell key={i} fill={d.fill} />)}
           </Pie>
-          <Legend iconType="circle" wrapperStyle={{ color: C.subtext, fontSize: "0.75rem" }} />
         </PieChart>
         <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
           {data.map(d => (
@@ -220,8 +219,8 @@ function FairnessDelta({ modelAudit }: { modelAudit: AuditReport["modelAudit"] }
         Fairness Metrics (%)
         {showHist && showMod ? " — Historical vs Model" : showHist ? " — Historical" : " — Model"}
       </SectionHead>
-      <ResponsiveContainer width="100%" height={Math.max(180, data.length * 52)}>
-        <BarChart data={data} layout="vertical" barGap={2}>
+      <ResponsiveContainer width="100%" height={Math.max(200, data.length * 56)}>
+        <BarChart data={data} layout="vertical" barGap={2} margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" horizontal={false} />
           <XAxis type="number" tick={{ fontSize: 10, fill: C.subtext }} tickFormatter={v => `${v}%`} />
           <YAxis type="category" dataKey="label" width={170} tick={{ fontSize: 10, fill: C.subtext }} />
@@ -229,7 +228,7 @@ function FairnessDelta({ modelAudit }: { modelAudit: AuditReport["modelAudit"] }
             contentStyle={{ background: "#09090b", border: `1px solid ${C.border}`, borderRadius: "0.5rem", fontSize: "0.78rem" }}
             formatter={(v: number) => [`${v.toFixed(2)}%`]}
           />
-          <Legend wrapperStyle={{ color: C.subtext, fontSize: "0.78rem" }} />
+          <Legend verticalAlign="top" wrapperStyle={{ color: C.subtext, fontSize: "0.78rem", paddingBottom: "0.5rem" }} />
           {showHist && <Bar dataKey="Historical" radius={[0,4,4,0]} fill={C.historical} />}
           {showMod  && <Bar dataKey="Model"      radius={[0,4,4,0]} fill={C.model} />}
         </BarChart>
@@ -303,15 +302,15 @@ function CounterfactualPanel({ modelAudit, protectedAttribute }: { modelAudit: A
       {flipData.length > 0 && (
         <>
           <SectionHead>Flipped Decisions by {protectedAttribute} Group</SectionHead>
-          <ResponsiveContainer width="100%" height={160}>
-            <BarChart data={flipData} barGap={3}>
+          <ResponsiveContainer width="100%" height={180}>
+            <BarChart data={flipData} barGap={3} margin={{ top: 8, right: 8, left: 0, bottom: 8 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
               <XAxis dataKey="group" tick={{ fontSize: 11, fill: C.subtext }} />
               <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: C.subtext }} />
               <Tooltip
                 contentStyle={{ background: "#09090b", border: `1px solid ${C.border}`, borderRadius: "0.5rem", fontSize: "0.78rem" }}
               />
-              <Legend wrapperStyle={{ color: C.subtext, fontSize: "0.78rem" }} />
+              <Legend verticalAlign="top" wrapperStyle={{ color: C.subtext, fontSize: "0.78rem", paddingBottom: "0.5rem" }} />
               <Bar dataKey="Flipped" radius={[4,4,0,0]} fill={C.denied}   />
               <Bar dataKey="Stable"  radius={[4,4,0,0]} fill={C.approved} />
             </BarChart>

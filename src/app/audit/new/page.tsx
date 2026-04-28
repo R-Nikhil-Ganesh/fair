@@ -68,7 +68,7 @@ export default function NewAuditPage() {
 
   const handleAuditComplete = (audit: AuditDocument) => {
     setPageState("complete");
-    setTimeout(() => { router.push(`/audit/${audit.auditId}`); }, 1500);
+    setTimeout(() => { router.push(`/dashboard/audit/${audit.auditId}`); }, 1500);
   };
 
   return (

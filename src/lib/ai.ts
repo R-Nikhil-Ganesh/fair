@@ -136,12 +136,17 @@ export async function uploadAndStartAudit(
     });
   };
 
-  let csvProgress = 0;
-  let modelProgress = 0;
+  let csvProgress   = 0;
+  let modelProgress  = 0;
+  let lastReported   = 0;   // high-water mark — progress never goes backwards
   const progressDivisor = config.modelFile ? 2 : 1;
   const reportProgress = () => {
-    const pct = Math.round((csvProgress + modelProgress) / progressDivisor);
-    onProgress(pct);
+    const raw = Math.round((csvProgress + modelProgress) / progressDivisor);
+    // Only advance the bar, never retreat (handles Firebase retries + parallel-upload averaging)
+    if (raw > lastReported) {
+      lastReported = raw;
+      onProgress(raw);
+    }
   };
 
   const uploads: Promise<void>[] = [

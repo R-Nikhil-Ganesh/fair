@@ -41,7 +41,8 @@ const DELTA_STYLES: Record<"good" | "bad" | "neutral", string> = {
   neutral: "bg-zinc-800 text-zinc-300 border-zinc-700",
 };
 
-const formatValue = (value: number, isPercentage?: boolean) => {
+const formatValue = (value: number | undefined | null, isPercentage?: boolean): string => {
+  if (value === undefined || value === null || !Number.isFinite(value)) return "—";
   if (isPercentage) return `${(value * 100).toFixed(1)}%`;
   return value.toFixed(3);
 };

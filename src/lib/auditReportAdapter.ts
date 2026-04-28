@@ -241,7 +241,8 @@ export function mapFirestoreAuditToReport(id: string, rawData: Record<string, un
   const status = normalizeStatus(rawData.status);
   const disparities = buildDisparities(rawData);
   const modelAuditRaw =
-    (rawData.results as { modelAudit?: Record<string, unknown> } | undefined)?.modelAudit;
+    (rawData.results as { modelAudit?: Record<string, unknown> } | undefined)?.modelAudit ||
+    (rawData.modelAudit as Record<string, unknown> | undefined);
   const modelAudit = normalizeModelAudit(modelAuditRaw);
   const totalRecords =
     asNumber(rawData.totalRecords) ||
@@ -266,7 +267,7 @@ export function mapFirestoreAuditToReport(id: string, rawData: Record<string, un
     overallApprovalRate: deriveOverallApprovalRate(rawData),
     disparities,
     status,
-    modelAudit: rawData.modelAudit || undefined,
+    modelAudit: modelAudit || (modelAuditRaw as any) || undefined,
     geminiSummary:
       (typeof rawData.geminiSummary === "string" && rawData.geminiSummary) ||
       ((rawData.results as { geminiOutput?: { biasNarrative?: unknown } } | undefined)

@@ -164,9 +164,85 @@ function deriveDatasetName(raw: Record<string, unknown>, fallbackId: string): st
   return fallbackId;
 }
 
+function normalizeFairnessMetrics(raw: Record<string, unknown> | undefined) {
+  if (!raw) return undefined;
+  const rates =
+    (raw.groupApprovalRates as Record<string, unknown> | undefined) ??
+    (raw.group_approval_rates as Record<string, unknown> | undefined) ??
+    {};
+  const counts =
+    (raw.groupCounts as Record<string, unknown> | undefined) ??
+    (raw.group_counts as Record<string, unknown> | undefined) ??
+    {};
+  const thresholds =
+    (raw.thresholdsUsed as Record<string, unknown> | undefined) ??
+    (raw.thresholds_used as Record<string, unknown> | undefined) ??
+    {};
+
+  return {
+    demographicParityDifference: asNumber(
+      raw.demographicParityDifference ?? raw.demographic_parity_difference
+    ),
+    equalizedOddsDifference: asNumber(
+      raw.equalizedOddsDifference ?? raw.equalized_odds_difference
+    ),
+    averageOddsDifference: asNumber(
+      raw.averageOddsDifference ?? raw.average_odds_difference
+    ),
+    disparateImpactRatio: asNumber(
+      raw.disparateImpactRatio ?? raw.disparate_impact_ratio
+    ),
+    statisticalParityDifference: asNumber(
+      raw.statisticalParityDifference ?? raw.statistical_parity_difference
+    ),
+    groupApprovalRates: Object.fromEntries(
+      Object.entries(rates).map(([key, value]) => [key, asNumber(value)])
+    ),
+    flaggedMetrics:
+      (raw.flaggedMetrics as string[] | undefined) ??
+      (raw.flagged_metrics as string[] | undefined) ??
+      [],
+    overallStatus:
+      (raw.overallStatus as "pass" | "warning" | "fail" | undefined) ??
+      (raw.overall_status as "pass" | "warning" | "fail" | undefined) ??
+      "pass",
+    rowCount: asNumber(raw.rowCount ?? raw.row_count),
+    groupCounts: Object.fromEntries(
+      Object.entries(counts).map(([key, value]) => [key, asNumber(value)])
+    ),
+    thresholdsUsed: Object.fromEntries(
+      Object.entries(thresholds).map(([key, value]) => [key, asNumber(value)])
+    ),
+  };
+}
+
+function normalizeModelAudit(raw: Record<string, unknown> | undefined) {
+  if (!raw) return undefined;
+
+  const historicalRaw = raw.historical_fairness as Record<string, unknown> | undefined;
+  const modelRaw = raw.model_fairness as Record<string, unknown> | undefined;
+  const historicalMetrics = normalizeFairnessMetrics(historicalRaw);
+  const modelMetrics = normalizeFairnessMetrics(modelRaw);
+
+  if (!historicalMetrics || !modelMetrics) {
+    return undefined;
+  }
+
+  return {
+    model_type: String(raw.model_type ?? ""),
+    model_accuracy: asNumber(raw.model_accuracy, -1),
+    historical_fairness: historicalMetrics,
+    model_fairness: modelMetrics,
+    counterfactual_data: raw.counterfactual_data as AuditReport["modelAudit"]["counterfactual_data"],
+  };
+}
+
 export function mapFirestoreAuditToReport(id: string, rawData: Record<string, unknown>): AuditReport {
   const status = normalizeStatus(rawData.status);
   const disparities = buildDisparities(rawData);
+  const modelAuditRaw =
+    (rawData.results as { modelAudit?: Record<string, unknown> } | undefined)?.modelAudit;
+  const modelAudit = normalizeModelAudit(modelAuditRaw);
   const totalRecords =
     asNumber(rawData.totalRecords) ||
     asNumber((rawData.results as { rowCount?: unknown } | undefined)?.rowCount) ||
@@ -190,6 +266,7 @@ export function mapFirestoreAuditToReport(id: string, rawData: Record<string, un
     overallApprovalRate: deriveOverallApprovalRate(rawData),
     disparities,
     status,
+    modelAudit: modelAudit as AuditReport["modelAudit"],
     geminiSummary:
       (typeof rawData.geminiSummary === "string" && rawData.geminiSummary) ||
       ((rawData.results as { geminiOutput?: { biasNarrative?: unknown } } | undefined)

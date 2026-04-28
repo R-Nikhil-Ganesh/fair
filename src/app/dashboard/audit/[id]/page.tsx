@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Loader2, Sparkles, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Loader2, ShieldCheck } from "lucide-react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
@@ -45,11 +45,11 @@ export default function AuditResultsPage() {
   }, [params.id, user]);
 
   if (loading) {
-    return <div className="p-8 text-center text-muted-foreground">Loading audit results...</div>;
+    return <div className="p-8 text-center text-zinc-500">Loading audit results...</div>;
   }
 
   if (!report) {
-    return <div className="p-8 text-center text-muted-foreground">Audit not found.</div>;
+    return <div className="p-8 text-center text-zinc-500">Audit not found.</div>;
   }
 
   const isProcessing = report.status === "processing";
@@ -57,53 +57,56 @@ export default function AuditResultsPage() {
   const hasFlag = report.disparities.some(d => d.flagged);
 
   return (
-    <div className="flex flex-col gap-6 max-w-6xl mx-auto">
-      <div className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-white via-blue-50/40 to-emerald-50/40 p-6 shadow-sm">
-        <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-blue-100/70 blur-2xl" aria-hidden />
-        <div className="absolute -left-10 -bottom-10 h-32 w-32 rounded-full bg-emerald-100/70 blur-2xl" aria-hidden />
+    <div className="flex flex-col gap-6 max-w-6xl mx-auto text-zinc-100">
+      <div className="relative overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950 p-6 shadow-[0_20px_60px_-30px_rgba(0,0,0,0.7)]">
         <div className="relative flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <button onClick={() => router.back()} className="p-2 hover:bg-white/80 rounded-full transition-colors text-muted-foreground border border-border/70">
-            <ArrowLeft size={20} />
-          </button>
-          <div>
-            <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="text-2xl m-0 leading-none tracking-tight">{report.datasetName || "Audit Report"}</h1>
-              {isProcessing ? (
-                <StatusBadge label="Processing" variant="processing" />
-              ) : isFailed ? (
-                <StatusBadge label="Failed" variant="error" />
-              ) : hasFlag ? (
-                <StatusBadge label="Action Required" variant="warning" />
-              ) : (
-                <StatusBadge label="Passed" variant="pass" />
-              )}
-            </div>
-            <p className="text-sm text-muted-foreground mt-2">
-              Audit ID: {report.id} • Evaluated on {new Date(report.date).toLocaleDateString()}
-            </p>
-            <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
-              <ShieldCheck size={14} className="text-primary" />
-              <span>Compliance-ready fairness summary and mitigation guidance</span>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => router.back()}
+              className="p-2 hover:bg-zinc-900 rounded-full transition-colors text-zinc-300 border border-zinc-800"
+            >
+              <ArrowLeft size={20} />
+            </button>
+            <div>
+              <div className="flex items-center gap-3 flex-wrap">
+                <h1 className="text-2xl m-0 leading-none tracking-tight">
+                  {report.datasetName || "Audit Report"}
+                </h1>
+                {isProcessing ? (
+                  <StatusBadge label="Processing" variant="processing" />
+                ) : isFailed ? (
+                  <StatusBadge label="Failed" variant="error" />
+                ) : hasFlag ? (
+                  <StatusBadge label="Action Required" variant="warning" />
+                ) : (
+                  <StatusBadge label="Passed" variant="pass" />
+                )}
+              </div>
+              <p className="text-sm text-zinc-500 mt-2">
+                Audit ID: {report.id} • Evaluated on {new Date(report.date).toLocaleDateString()}
+              </p>
+              <div className="mt-3 flex items-center gap-2 text-xs text-zinc-500">
+                <ShieldCheck size={14} className="text-blue-400" />
+                <span>Compliance-ready fairness summary and mitigation guidance</span>
+              </div>
             </div>
           </div>
+          {auditDoc ? (
+            <PdfExportButton audit={auditDoc} />
+          ) : (
+            <button className="btn btn-secondary flex items-center gap-2 bg-zinc-900 border-zinc-800 shadow-sm" disabled>
+              Export PDF
+            </button>
+          )}
         </div>
-        {auditDoc ? (
-          <PdfExportButton audit={auditDoc} />
-        ) : (
-          <button className="btn btn-secondary flex items-center gap-2 bg-white/90 border-border shadow-sm" disabled>
-            Export PDF
-          </button>
-        )}
-      </div>
       </div>
 
       {isProcessing ? (
-        <div className="card border border-warning/40 bg-gradient-to-r from-amber-50 to-yellow-50 flex items-start gap-3">
-          <Loader2 size={18} className="animate-spin mt-0.5" />
+        <div className="rounded-2xl border border-amber-500/40 bg-amber-500/10 flex items-start gap-3 p-4">
+          <Loader2 size={18} className="animate-spin mt-0.5 text-amber-300" />
           <div>
-            <p className="font-semibold">Audit is still processing in cloud workers</p>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="font-semibold text-amber-200">Audit is still processing in cloud workers</p>
+            <p className="text-sm text-zinc-400 mt-1">
               Metrics and narrative will appear as soon as Firestore receives results from the worker pipeline.
             </p>
           </div>
@@ -111,9 +114,9 @@ export default function AuditResultsPage() {
       ) : null}
 
       {isFailed ? (
-        <div className="card border border-destructive/40 bg-gradient-to-r from-red-50 to-rose-50">
-          <p className="font-semibold text-destructive">Audit failed before completion.</p>
-          <p className="text-sm text-muted-foreground mt-1">
+        <div className="rounded-2xl border border-red-500/40 bg-red-500/10 p-4">
+          <p className="font-semibold text-red-300">Audit failed before completion.</p>
+          <p className="text-sm text-zinc-400 mt-1">
             Use Settings → Cloud Diagnostics to verify backend dependencies.
           </p>
         </div>
@@ -126,19 +129,19 @@ export default function AuditResultsPage() {
             totalRecords={report.totalRecords}
             overallApprovalRate={report.overallApprovalRate}
             isPending={isProcessing}
+            modelAudit={report.modelAudit}
           />
 
-          <ApprovalRatesChart disparities={report.disparities} />
+          <ApprovalRatesChart disparities={report.disparities} modelAudit={report.modelAudit} />
         </div>
 
         <div className="space-y-6">
-          <div className="card p-4 bg-gradient-to-br from-slate-50 to-white border-border/80">
-            <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-              <Sparkles size={14} className="text-primary" />
-              Audit Snapshot
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-4">
+            <div className="flex items-center gap-2 text-sm font-semibold text-zinc-200">
+              Command Center
             </div>
-            <p className="mt-2 text-xs text-muted-foreground leading-relaxed">
-              Review narrative insights, mitigation steps, and group-level outcomes before exporting.
+            <p className="mt-2 text-xs text-zinc-500 leading-relaxed">
+              Review narrative insights, counterfactual logs, and action plans before exporting.
             </p>
           </div>
           <AuditInsights report={report} />

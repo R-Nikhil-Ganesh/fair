@@ -101,6 +101,10 @@ export interface AuditDocument {
   protectedAttribute: string;
   targetColumn: string;
   csvPath: string;
+  modelPath?: string | null;
+  modelFramework?: "sklearn" | "onnx" | null;
+  modelFileName?: string | null;
+  modelFileSize?: number | null;
   createdAt: any;
   updatedAt: any;
   completedAt?: any;

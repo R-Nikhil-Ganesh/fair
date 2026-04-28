@@ -22,6 +22,8 @@ export default function NewAuditPage() {
   const handleWizardComplete = async (config: {
     domain: "lending" | "employment" | "insurance";
     file?: File;
+    modelFile?: File;
+    modelFramework?: "sklearn" | "onnx";
     sampleDatasetKey?: string;
     protectedAttribute: string;
     targetColumn: string;
@@ -48,6 +50,8 @@ export default function NewAuditPage() {
             targetColumn: config.targetColumn,
             favorableLabel: config.favorableLabel,
             domain: config.domain,
+            modelFile: config.modelFile,
+            modelFramework: config.modelFramework,
           },
           setUploadProgress
         );

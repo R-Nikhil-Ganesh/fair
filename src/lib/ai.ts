@@ -5,11 +5,11 @@ import { db, storage } from "./firebase";
 import {
   doc, setDoc, getDoc, onSnapshot, serverTimestamp, collection
 } from "firebase/firestore";
-import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { ref, uploadBytesResumable } from "firebase/storage";
 import { getPerformanceTrace } from "./performanceTraces";
 import { logAuditEvent } from "./firebaseAnalytics";
 import type {
-  AuditDocument, AuditStartRequest, FairnessMetrics, GeminiOutput
+  AuditDocument
 } from "./types";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "";
@@ -24,10 +24,12 @@ export async function uploadAndStartAudit(
     targetColumn: string;
     favorableLabel: number;
     domain: "lending" | "employment" | "insurance";
+    modelFile?: File;
+    modelFramework?: "sklearn" | "onnx";
   },
   onProgress: (pct: number) => void
 ): Promise<string> {
-  const trace = getPerformanceTrace("csv_upload_and_audit_start");
+  const trace = getPerformanceTrace("asset_upload_and_audit_start");
   trace.start();
 
   const normalizeUploadError = (error: unknown): Error => {
@@ -50,8 +52,12 @@ export async function uploadAndStartAudit(
   const auditRef = doc(collection(db, "audits", config.uid, "audits"));
   const auditId = auditRef.id;
 
+  const csvPath = `audits/${config.uid}/${auditId}/${file.name}`;
+  const modelPath = config.modelFile
+    ? `audits/${config.uid}/${auditId}/${config.modelFile.name}`
+    : undefined;
+
   // Create Firestore document FIRST with status "pending"
-  // The Cloud Function will trigger when the CSV file is uploaded
   await setDoc(auditRef, {
     auditId,
     uid: config.uid,
@@ -64,68 +70,141 @@ export async function uploadAndStartAudit(
     favorableLabel: config.favorableLabel,
     fileName: file.name,
     fileSize: file.size,
+    csvPath,
+    modelFileName: config.modelFile?.name ?? null,
+    modelFileSize: config.modelFile?.size ?? null,
+    modelFramework: config.modelFramework ?? null,
+    modelPath: modelPath ?? null,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
 
-  // Upload CSV to Firebase Storage
-  // Path convention: audits/{uid}/{auditId}/data.csv
-  // This path triggers the Cloud Function onAuditFileUploaded
-  const storagePath = `audits/${config.uid}/${auditId}/data.csv`;
-  const storageRef = ref(storage, storagePath);
+  const uploadFile = async (
+    uploadFile: File,
+    storagePath: string,
+    onPartProgress: (pct: number) => void
+  ): Promise<void> => {
+    const storageRef = ref(storage, storagePath);
+    await new Promise<void>((resolve, reject) => {
+      const uploadTask = uploadBytesResumable(storageRef, uploadFile);
+      const UPLOAD_INACTIVITY_TIMEOUT_MS = 60000;
+      let timeoutHandle: ReturnType<typeof setTimeout>;
+      let settled = false;
 
-  await new Promise<void>((resolve, reject) => {
-    const uploadTask = uploadBytesResumable(storageRef, file);
-    const UPLOAD_INACTIVITY_TIMEOUT_MS = 60000;
-    let timeoutHandle: ReturnType<typeof setTimeout>;
-    let settled = false;
+      const rejectOnce = (reason: Error) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timeoutHandle);
+        reject(reason);
+      };
 
-    const rejectOnce = (reason: Error) => {
-      if (settled) return;
-      settled = true;
-      clearTimeout(timeoutHandle);
-      reject(reason);
-    };
+      const resolveOnce = () => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timeoutHandle);
+        resolve();
+      };
 
-    const resolveOnce = () => {
-      if (settled) return;
-      settled = true;
-      clearTimeout(timeoutHandle);
-      resolve();
-    };
+      const resetTimeout = () => {
+        clearTimeout(timeoutHandle);
+        timeoutHandle = setTimeout(() => {
+          try {
+            uploadTask.cancel();
+          } catch {
+            // Best effort cancel; continue with timeout error either way.
+          }
+          rejectOnce(
+            new Error(
+              "Upload timed out while waiting for Firebase Storage progress. Check Storage bucket config, Firebase rules, App Check, and network connectivity.",
+            ),
+          );
+        }, UPLOAD_INACTIVITY_TIMEOUT_MS);
+      };
 
-    const resetTimeout = () => {
-      clearTimeout(timeoutHandle);
-      timeoutHandle = setTimeout(() => {
-        try {
-          uploadTask.cancel();
-        } catch {
-          // Best effort cancel; continue with timeout error either way.
-        }
-        rejectOnce(
-          new Error(
-            "Upload timed out while waiting for Firebase Storage progress. Check Storage bucket config, Firebase rules, App Check, and network connectivity.",
-          ),
-        );
-      }, UPLOAD_INACTIVITY_TIMEOUT_MS);
-    };
+      resetTimeout();
 
-    resetTimeout();
+      uploadTask.on(
+        "state_changed",
+        (snapshot) => {
+          resetTimeout();
+          const pct = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+          onPartProgress(pct);
+        },
+        (error) => rejectOnce(normalizeUploadError(error)),
+        () => resolveOnce()
+      );
+    });
+  };
 
-    uploadTask.on(
-      "state_changed",
-      (snapshot) => {
-        resetTimeout();
-        const pct = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
-        onProgress(pct);
-      },
-      (error) => rejectOnce(normalizeUploadError(error)),
-      () => resolveOnce()
+  let csvProgress = 0;
+  let modelProgress = 0;
+  const progressDivisor = config.modelFile ? 2 : 1;
+  const reportProgress = () => {
+    const pct = Math.round((csvProgress + modelProgress) / progressDivisor);
+    onProgress(pct);
+  };
+
+  const uploads: Promise<void>[] = [
+    uploadFile(file, csvPath, (pct) => {
+      csvProgress = pct;
+      reportProgress();
+    }),
+  ];
+
+  if (config.modelFile && modelPath) {
+    uploads.push(
+      uploadFile(config.modelFile, modelPath, (pct) => {
+        modelProgress = pct;
+        reportProgress();
+      })
     );
-  });
+  }
+
+  await Promise.all(uploads);
+
+  const response = await fetch(
+    `${BACKEND_URL}${config.modelFile ? "/api/audit/model" : "/api/audit/start"}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(
+        config.modelFile
+          ? {
+              audit_id: auditId,
+              csv_path: csvPath,
+              model_path: modelPath,
+              protected_attribute: config.protectedAttribute,
+              target_column: config.targetColumn,
+              domain: config.domain,
+              uid: config.uid,
+              model_framework: config.modelFramework,
+            }
+          : {
+              audit_id: auditId,
+              csv_path: csvPath,
+              protected_attribute: config.protectedAttribute,
+              target_column: config.targetColumn,
+              favorable_label: config.favorableLabel,
+              domain: config.domain,
+              uid: config.uid,
+            }
+      ),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      config.modelFile ? "Failed to start model audit pipeline" : "Failed to start audit pipeline"
+    );
+  }
 
   trace.stop();
-  logAuditEvent("audit_started", { domain: config.domain, fileSize: file.size });
+  logAuditEvent("audit_started", {
+    domain: config.domain,
+    fileSize: file.size,
+    modelFramework: config.modelFramework ?? null,
+    hasModelArtifact: Boolean(config.modelFile),
+  });
 
   return auditId;
 }

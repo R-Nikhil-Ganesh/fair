@@ -35,6 +35,8 @@ interface OnboardingWizardProps {
   onComplete: (config: {
     domain: "lending" | "employment" | "insurance";
     file?: File;
+    modelFile?: File;
+    modelFramework?: "sklearn" | "onnx";
     sampleDatasetKey?: string;
     protectedAttribute: string;
     targetColumn: string;
@@ -49,6 +51,8 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
   const [domain, setDomain] = useState<"lending" | "employment" | "insurance" | null>(null);
   const [dataSource, setDataSource] = useState<"upload" | "sample" | null>(null);
   const [file, setFile] = useState<File | null>(null);
+  const [modelFile, setModelFile] = useState<File | null>(null);
+  const [modelFramework, setModelFramework] = useState<"sklearn" | "onnx">("sklearn");
   const [selectedSample, setSelectedSample] = useState<SampleDatasetMeta | null>(null);
   const [headers, setHeaders] = useState<string[]>([]);
   const [protectedAttribute, setProtectedAttribute] = useState("");
@@ -96,12 +100,20 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
 
   const handleSampleSelect = (sample: SampleDatasetMeta) => {
     setSelectedSample(sample);
+    setModelFile(null);
     setHeaders(["sex", "age", "credit_amount", "duration", "credit_risk"]);
     setProtectedAttribute(sample.protectedAttribute);
     setTargetColumn(sample.targetColumn);
     setFavorableLabel(sample.favorableLabel);
     setStep(3);
     announce(`${sample.name} selected. Review the column mapping.`);
+  };
+
+  const handleModelFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    setModelFile(f);
+    announce(`Model artifact selected: ${f.name}`);
   };
 
   const handleColumnMappingNext = () => {
@@ -122,6 +134,8 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
     onComplete({
       domain: domain!,
       file: file ?? undefined,
+      modelFile: modelFile ?? undefined,
+      modelFramework,
       sampleDatasetKey: selectedSample?.key,
       protectedAttribute,
       targetColumn,
@@ -236,6 +250,32 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
               <p id="csv-upload-help" className="wizard-help text-xs text-gray-400 mt-2">
                 CSV must have a header row. Column names will be auto-detected.
               </p>
+              <div className="mt-4">
+                <label htmlFor="model-upload" className="wizard-label block text-sm font-medium mb-2">
+                  Model artifact (.pkl or .onnx)
+                </label>
+                <input
+                  id="model-upload"
+                  type="file"
+                  accept=".pkl,.onnx"
+                  onChange={handleModelFileChange}
+                  className="wizard-file-input block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                />
+              </div>
+              <div className="mt-3">
+                <label htmlFor="model-framework" className="wizard-label block text-sm font-medium mb-2">
+                  Model framework
+                </label>
+                <select
+                  id="model-framework"
+                  value={modelFramework}
+                  onChange={(e) => setModelFramework(e.target.value as "sklearn" | "onnx")}
+                  className="wizard-select w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="sklearn">Scikit-Learn (.pkl)</option>
+                  <option value="onnx">ONNX (.onnx)</option>
+                </select>
+              </div>
               {isParsingCSV && (
                 <p className="wizard-status text-sm text-blue-600 mt-2" role="status">
                   Parsing CSV...

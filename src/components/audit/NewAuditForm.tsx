@@ -2,6 +2,8 @@ import { Info, Loader2, UploadCloud } from "lucide-react";
 
 interface NewAuditFormProps {
   file: File | null;
+  modelFile: File | null;
+  modelFramework: "sklearn" | "onnx";
   headers: string[];
   targetColumn: string;
   protectedAttribute: string;
@@ -9,6 +11,8 @@ interface NewAuditFormProps {
   isUploading: boolean;
   disabled: boolean;
   onFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onModelFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onModelFrameworkChange: (value: "sklearn" | "onnx") => void;
   onTargetColumnChange: (value: string) => void;
   onProtectedAttributeChange: (value: string) => void;
   onModeChange: (value: "lending" | "employment" | "insurance") => void;
@@ -18,6 +22,8 @@ interface NewAuditFormProps {
 export function NewAuditForm(props: NewAuditFormProps) {
   const {
     file,
+    modelFile,
+    modelFramework,
     headers,
     targetColumn,
     protectedAttribute,
@@ -25,6 +31,8 @@ export function NewAuditForm(props: NewAuditFormProps) {
     isUploading,
     disabled,
     onFileUpload,
+    onModelFileUpload,
+    onModelFrameworkChange,
     onTargetColumnChange,
     onProtectedAttributeChange,
     onModeChange,
@@ -36,29 +44,76 @@ export function NewAuditForm(props: NewAuditFormProps) {
       <h2 className="text-xl">Configure Fairness Audit</h2>
 
       <div className="form-group">
-        <label className="form-label font-semibold">1. Upload Dataset (CSV)</label>
-        <div className="border-2 border-dashed border-border rounded-lg p-8 flex flex-col items-center justify-center text-center bg-muted/50 hover:bg-muted transition-colors relative cursor-pointer">
-          <input
-            type="file"
-            accept=".csv"
-            onChange={onFileUpload}
-            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+        <label className="form-label font-semibold">1. Upload Assets</label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="border-2 border-dashed border-zinc-800 rounded-lg p-8 flex flex-col items-center justify-center text-center bg-zinc-950/80 hover:border-zinc-700 transition-colors relative cursor-pointer focus-within:ring-2 focus-within:ring-blue-500/50">
+            <input
+              type="file"
+              accept=".csv,.parquet"
+              onChange={onFileUpload}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              required
+            />
+            <UploadCloud size={32} className="text-zinc-400 mb-3" />
+            {file ? (
+              <div>
+                <p className="font-medium text-zinc-100">{file.name}</p>
+                <p className="text-xs text-zinc-400 mt-1">{(file.size / 1024).toFixed(1)} KB</p>
+              </div>
+            ) : (
+              <div>
+                <p className="font-medium text-zinc-100">Dataset Upload</p>
+                <p className="text-xs text-zinc-400 mt-1">
+                  Click or drag your evaluation dataset here.
+                </p>
+              </div>
+            )}
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-[0.7rem] font-mono text-zinc-400">
+              <span className="rounded-full border border-zinc-800 bg-zinc-900 px-2 py-0.5">CSV</span>
+              <span className="rounded-full border border-zinc-800 bg-zinc-900 px-2 py-0.5">PARQUET</span>
+            </div>
+          </div>
+
+          <div className="border-2 border-dashed border-zinc-800 rounded-lg p-8 flex flex-col items-center justify-center text-center bg-zinc-950/80 hover:border-zinc-700 transition-colors relative cursor-pointer focus-within:ring-2 focus-within:ring-blue-500/50">
+            <input
+              type="file"
+              accept=".pkl,.onnx"
+              onChange={onModelFileUpload}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              required
+            />
+            <UploadCloud size={32} className="text-zinc-400 mb-3" />
+            {modelFile ? (
+              <div>
+                <p className="font-medium text-zinc-100">{modelFile.name}</p>
+                <p className="text-xs text-zinc-400 mt-1">{(modelFile.size / 1024).toFixed(1)} KB</p>
+              </div>
+            ) : (
+              <div>
+                <p className="font-medium text-zinc-100">Model Artifact Upload</p>
+                <p className="text-xs text-zinc-400 mt-1">
+                  Upload the trained model used for scoring.
+                </p>
+              </div>
+            )}
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-[0.7rem] font-mono text-zinc-400">
+              <span className="rounded-full border border-zinc-800 bg-zinc-900 px-2 py-0.5">PKL</span>
+              <span className="rounded-full border border-zinc-800 bg-zinc-900 px-2 py-0.5">ONNX</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4">
+          <label className="form-label font-semibold">Model Framework</label>
+          <select
+            className="form-select w-full bg-zinc-950 border border-zinc-800 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+            value={modelFramework}
+            onChange={(event) => onModelFrameworkChange(event.target.value as "sklearn" | "onnx")}
             required
-          />
-          <UploadCloud size={32} className="text-muted-foreground mb-3" />
-          {file ? (
-            <div>
-              <p className="font-medium text-foreground">{file.name}</p>
-              <p className="text-xs text-muted-foreground mt-1">{(file.size / 1024).toFixed(1)} KB</p>
-            </div>
-          ) : (
-            <div>
-              <p className="font-medium text-foreground">Click or drag CSV file here</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Must contain applicant features and decision labels.
-              </p>
-            </div>
-          )}
+          >
+            <option value="sklearn">Scikit-Learn (.pkl)</option>
+            <option value="onnx">ONNX (.onnx)</option>
+          </select>
         </div>
       </div>
 

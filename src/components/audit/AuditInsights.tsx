@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { X, Sparkles, ChevronRight, TerminalSquare } from "lucide-react";
-import type { AuditReport } from "@/lib/types";
+import type { AuditReport, CounterfactualEntry } from "@/lib/types";
 
 /* ─── Modal ──────────────────────────────────────────────────── */
 function Modal({
@@ -275,7 +275,7 @@ export function AuditInsights({
                   </tr>
                 </thead>
                 <tbody>
-                  {report.modelAudit.counterfactual_data.entries.map((e, i) => (
+                  {report.modelAudit.counterfactual_data.entries.map((e: CounterfactualEntry, i: number) => (
                     <tr key={i} style={{ borderBottom: "1px solid #1a1a1a" }}>
                       <td style={{ padding: "0.3rem 0.5rem", color: "#71717a", fontFamily: "monospace" }}>#{e.record_index}</td>
                       <td style={{ padding: "0.3rem 0.5rem", color: "#a1a1aa" }}>{String(e.original_value)}</td>

@@ -20,7 +20,7 @@ export interface AuditReport {
   status: AuditStatus;
   geminiSummary?: string;
   recommendations?: string[];
-  modelAudit?: any;
+  modelAudit?: ModelAuditSummary;
 }
 
 // ─── Backend API Types (added by Teammate A) ───────────────────────────────

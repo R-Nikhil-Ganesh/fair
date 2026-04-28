@@ -123,7 +123,8 @@ interface MetricsGridProps {
 
 export function MetricsGrid({ metrics, domain, modelMetrics }: MetricsGridProps) {
   const activeMetrics = modelMetrics ?? metrics;
-  const isFlagged = (key: string) => activeMetrics.flaggedMetrics.includes(key);
+  const flaggedList = activeMetrics.flaggedMetrics ?? [];
+  const isFlagged = (key: string) => flaggedList.includes(key);
 
   const getSeverity = (key: string): Severity => {
     if (isFlagged(key)) return "fail";

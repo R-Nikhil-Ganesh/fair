@@ -87,6 +87,32 @@ def compute_fairness_metrics(
 	privileged_group_value = group_approval_rates_series.idxmax()
 	unprivileged_group_value = group_approval_rates_series.idxmin()
 
+	# --- AIF360 NUMERICAL PATCH ---
+	# AIF360 requires the dataset to be strictly numerical.
+	# We dynamically encode string protected attributes to floats.
+	priv_val = privileged_group_value
+	unpriv_val = unprivileged_group_value
+
+	if (
+		working_df[protected_attribute].dtype == "object"
+		or working_df[protected_attribute].dtype.name == "category"
+	):
+		working_df[protected_attribute] = working_df[protected_attribute].astype("category")
+		cat_mapping = {
+			cat: code
+			for code, cat in enumerate(working_df[protected_attribute].cat.categories)
+		}
+		working_df[protected_attribute] = (
+			working_df[protected_attribute].cat.codes.astype(float)
+		)
+
+		priv_val = float(cat_mapping[privileged_group_value])
+		unpriv_val = float(cat_mapping[unprivileged_group_value])
+	else:
+		priv_val = float(priv_val)
+		unpriv_val = float(unpriv_val)
+	# ------------------------------
+
 	binary_df = working_df[[protected_attribute, target_column]].copy()
 	binary_df[target_column] = (binary_df[target_column] == favorable_label).astype(int)
 
@@ -98,8 +124,8 @@ def compute_fairness_metrics(
 		unfavorable_label=0,
 	)
 
-	privileged_groups = [{protected_attribute: privileged_group_value}]
-	unprivileged_groups = [{protected_attribute: unprivileged_group_value}]
+	privileged_groups = [{protected_attribute: priv_val}]
+	unprivileged_groups = [{protected_attribute: unpriv_val}]
 
 	metric = BinaryLabelDatasetMetric(
 		dataset,

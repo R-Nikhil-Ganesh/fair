@@ -132,7 +132,7 @@ export default function AuditResultsPage() {
             modelAudit={report.modelAudit}
           />
 
-          <ApprovalRatesChart disparities={report.disparities} modelAudit={report.modelAudit} />
+          <ApprovalRatesChart report={report} />
         </div>
 
         <div className="space-y-6">

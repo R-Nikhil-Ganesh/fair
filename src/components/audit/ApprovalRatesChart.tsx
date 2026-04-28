@@ -9,36 +9,28 @@ import {
   YAxis,
 } from "recharts";
 import { AlertTriangle } from "lucide-react";
-import type { DisparityInfo, ModelAuditSummary } from "@/lib/types";
+import type { AuditReport } from "@/lib/types";
 
 type ApprovalRatesChartProps = {
-  disparities: DisparityInfo[];
-  modelAudit?: ModelAuditSummary;
+  report: AuditReport;
 };
 
-export function ApprovalRatesChart({ disparities, modelAudit }: ApprovalRatesChartProps) {
-  const hasModel = Boolean(modelAudit);
-  const historicalRates = modelAudit?.historical_fairness?.groupApprovalRates ?? {};
-  const modelRates = modelAudit?.model_fairness?.groupApprovalRates ?? {};
+export function ApprovalRatesChart({ report }: ApprovalRatesChartProps) {
+  const chartData = report.disparities.map((disparity) => {
+    let modelRate = undefined;
+    if (report.modelAudit?.model_fairness?.group_approval_rates?.[disparity.group] !== undefined) {
+      modelRate = Math.round(report.modelAudit.model_fairness.group_approval_rates[disparity.group] * 100);
+    }
+    return {
+      name: disparity.group,
+      historicalRate: Math.round(disparity.approvalRate * 100),
+      modelRate: modelRate,
+      flagged: disparity.flagged,
+    };
+  });
 
-  const groupKeys = hasModel
-    ? Array.from(new Set([...Object.keys(historicalRates), ...Object.keys(modelRates)]))
-    : disparities.map((disparity) => disparity.group);
-
-  const chartData = hasModel
-    ? groupKeys.map((group) => ({
-        name: group,
-        historical: Math.round((historicalRates[group] ?? 0) * 100),
-        model: Math.round((modelRates[group] ?? 0) * 100),
-      }))
-    : disparities.map((disparity) => ({
-        name: disparity.group,
-        historical: Math.round(disparity.approvalRate * 100),
-        model: undefined,
-        flagged: disparity.flagged,
-      }));
-
-  const hasFlag = disparities.some((disparity) => disparity.flagged);
+  const hasModel = Boolean(report.modelAudit);
+  const hasFlag = report.disparities.some((disparity) => disparity.flagged);
 
   if (chartData.length === 0) {
     return (
@@ -100,10 +92,10 @@ export function ApprovalRatesChart({ disparities, modelAudit }: ApprovalRatesCha
               formatter={(value) => [`${Number(value)}%`, "Approval Rate"]}
             />
             <Legend wrapperStyle={{ color: "#a1a1aa" }} />
-            <Bar dataKey="historical" name="Historical" radius={[4, 4, 0, 0]} maxBarSize={40} fill="#52525b" />
-            {hasModel ? (
-              <Bar dataKey="model" name="Model" radius={[4, 4, 0, 0]} maxBarSize={40} fill="#3b82f6" />
-            ) : null}
+            <Bar dataKey="historicalRate" name="Historical Dataset" fill="#64748b" radius={[4, 4, 0, 0]} maxBarSize={40} />
+            {report.modelAudit && (
+              <Bar dataKey="modelRate" name="Model Prediction" fill="#3b82f6" radius={[4, 4, 0, 0]} maxBarSize={40} />
+            )}
           </BarChart>
         </ResponsiveContainer>
       </div>

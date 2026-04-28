@@ -266,7 +266,7 @@ export function mapFirestoreAuditToReport(id: string, rawData: Record<string, un
     overallApprovalRate: deriveOverallApprovalRate(rawData),
     disparities,
     status,
-    modelAudit: modelAudit as AuditReport["modelAudit"],
+    modelAudit: rawData.modelAudit || undefined,
     geminiSummary:
       (typeof rawData.geminiSummary === "string" && rawData.geminiSummary) ||
       ((rawData.results as { geminiOutput?: { biasNarrative?: unknown } } | undefined)

@@ -1,33 +1,19 @@
-import { ChevronRight, Sparkles, TerminalSquare } from "lucide-react";
+import { ChevronRight, Sparkles } from "lucide-react";
 import type { AuditReport } from "@/lib/types";
 
 export function AuditInsights({ report }: { report: AuditReport }) {
   const isProcessing = report.status === "processing";
-  const counterfactualNarrative = report.modelAudit?.counterfactual_data?.narrative?.trim();
-
-  const renderNarrative = (narrative: string) => {
-    const parts = narrative.split(/(\bApproved\b|\bDenied\b)/g);
-    return parts.map((part, index) => {
-      if (part === "Approved") {
-        return (
-          <span key={`approved-${index}`} className="text-emerald-300">
-            {part}
-          </span>
-        );
-      }
-      if (part === "Denied") {
-        return (
-          <span key={`denied-${index}`} className="text-red-300">
-            {part}
-          </span>
-        );
-      }
-      return <span key={`text-${index}`}>{part}</span>;
-    });
-  };
+  const counterfactual = report.modelAudit?.counterfactual_data?.narrative;
 
   return (
     <div className="flex flex-col gap-6">
+      {counterfactual && (
+        <div className="card mb-6 p-4 border border-purple-500/30 bg-purple-500/5">
+          <h2 className="text-lg font-bold mb-2">Counterfactual Interrogation</h2>
+          <pre className="whitespace-pre-wrap text-sm font-mono">{counterfactual}</pre>
+        </div>
+      )}
+
       <div className="rounded-2xl border border-zinc-800 bg-zinc-950/80 p-5 shadow-[0_0_0_1px_rgba(39,39,42,0.6)]">
         <div className="flex items-center gap-2 mb-4">
           <Sparkles size={18} className="text-blue-400" />
@@ -39,18 +25,6 @@ export function AuditInsights({ report }: { report: AuditReport }) {
             : report.geminiSummary || "No summary generated for this audit."}
         </p>
       </div>
-
-      {counterfactualNarrative ? (
-        <div className="rounded-2xl border border-zinc-800 bg-black p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <TerminalSquare size={18} className="text-blue-400" />
-            <h2 className="text-lg text-zinc-100">Counterfactual Interrogation Log</h2>
-          </div>
-          <div className="border-l-2 border-blue-500/40 pl-4 font-mono text-sm text-zinc-200 leading-relaxed">
-            {renderNarrative(counterfactualNarrative)}
-          </div>
-        </div>
-      ) : null}
 
       <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-5">
         <div className="flex items-center gap-2 mb-4">

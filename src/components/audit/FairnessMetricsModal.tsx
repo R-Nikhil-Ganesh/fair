@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, Scale, ChevronRight, AlertTriangle, CheckCircle2, TrendingUp, TrendingDown } from "lucide-react";
+import { X, Scale, AlertTriangle, CheckCircle2, TrendingUp, TrendingDown } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Cell, ReferenceLine, Legend,
@@ -243,8 +243,19 @@ function Modal({ open, onClose, children }: { open: boolean; onClose: () => void
 }
 
 // ── exported trigger + modal ──────────────────────────────────────────────────
-export function FairnessMetricsModal({ report }: { report: AuditReport }) {
-  const [open, setOpen] = useState(false);
+export function FairnessMetricsModal({
+  report,
+  externalOpen,
+  onExternalClose,
+}: {
+  report: AuditReport;
+  externalOpen?: boolean;
+  onExternalClose?: () => void;
+}) {
+  const [internalOpen, setInternalOpen] = useState(false);
+
+  const open    = externalOpen ?? internalOpen;
+  const onClose = onExternalClose ?? (() => setInternalOpen(false));
 
   // Pull metrics — prefer model_fairness if model present, else historical/root
   const histMetrics: FairnessMetrics | undefined =
@@ -286,57 +297,30 @@ export function FairnessMetricsModal({ report }: { report: AuditReport }) {
   const hasAny = Boolean(primary || modelMetrics);
 
   return (
-    <>
-      {/* trigger */}
-      <button
-        onClick={() => setOpen(true)}
-        style={{
-          display: "inline-flex", alignItems: "center", gap: "0.5rem",
-          padding: "0.55rem 1rem", borderRadius: "0.6rem",
-          border: "1px solid rgba(96,165,250,0.35)",
-          background: "rgba(96,165,250,0.07)",
-          color: "#93c5fd", fontSize: "0.82rem", fontWeight: 600, cursor: "pointer",
-          transition: "all 0.15s",
-        }}
-        onMouseEnter={e => (e.currentTarget.style.background = "rgba(96,165,250,0.14)")}
-        onMouseLeave={e => (e.currentTarget.style.background = "rgba(96,165,250,0.07)")}
-      >
-        <Scale size={14} />
-        Fairness Metrics
-        {flaggedCount > 0 && (
-          <span style={{
-            background: "rgba(239,68,68,0.2)", color: C.fail,
-            borderRadius: 999, fontSize: "0.68rem", padding: "0 0.35rem", fontWeight: 700,
-          }}>{flaggedCount}</span>
-        )}
-        <ChevronRight size={13} />
-      </button>
+    <Modal open={open} onClose={onClose}>
+      <StatusBanner metrics={primary} />
 
-      <Modal open={open} onClose={() => setOpen(false)}>
-        <StatusBanner metrics={primary} />
+      {/* metric cards grid */}
+      {hasAny ? (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "0.75rem" }}>
+          {DEFS.map(d => (
+            <MetricRow
+              key={d.key}
+              label={d.label}
+              description={d.description}
+              threshold={d.threshold}
+              histVal={(primary as any)?.[d.key]}
+              modelVal={(modelMetrics as any)?.[d.key]}
+              metricKey={d.key}
+            />
+          ))}
+        </div>
+      ) : (
+        <p style={{ color: C.muted, fontSize: "0.85rem" }}>Metrics not yet available — audit may still be processing.</p>
+      )}
 
-        {/* metric cards grid */}
-        {hasAny ? (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "0.75rem" }}>
-            {DEFS.map(d => (
-              <MetricRow
-                key={d.key}
-                label={d.label}
-                description={d.description}
-                threshold={d.threshold}
-                histVal={(primary as any)?.[d.key]}
-                modelVal={(modelMetrics as any)?.[d.key]}
-                metricKey={d.key}
-              />
-            ))}
-          </div>
-        ) : (
-          <p style={{ color: C.muted, fontSize: "0.85rem" }}>Metrics not yet available — audit may still be processing.</p>
-        )}
-
-        {/* chart */}
-        <GroupedApprovalChart report={report} />
-      </Modal>
-    </>
+      {/* chart */}
+      <GroupedApprovalChart report={report} />
+    </Modal>
   );
 }

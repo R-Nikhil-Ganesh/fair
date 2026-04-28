@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X, Sparkles, ChevronRight, TerminalSquare } from "lucide-react";
 import type { AuditReport } from "@/lib/types";
 
@@ -143,14 +143,33 @@ function TriggerButton({
 }
 
 /* ─── Main component ──────────────────────────────────────────── */
-export function AuditInsights({ report }: { report: AuditReport }) {
+export function AuditInsights({
+  report,
+  externalOpen,
+  onExternalClose,
+}: {
+  report: AuditReport;
+  externalOpen?: "summary" | "action" | null;
+  onExternalClose?: () => void;
+}) {
   const [summaryOpen, setSummaryOpen] = useState(false);
-  const [actionOpen, setActionOpen] = useState(false);
-  const [cfOpen, setCfOpen] = useState(false);
+  const [actionOpen,  setActionOpen]  = useState(false);
+  const [cfOpen,      setCfOpen]      = useState(false);
 
-  const isProcessing = report.status === "processing";
+  // Sync external triggers
+  useEffect(() => {
+    if (externalOpen === "summary") setSummaryOpen(true);
+    if (externalOpen === "action")  setActionOpen(true);
+  }, [externalOpen]);
+
+  const handleClose = (setter: (v: boolean) => void) => {
+    setter(false);
+    onExternalClose?.();
+  };
+
+  const isProcessing   = report.status === "processing";
   const counterfactual = report.modelAudit?.counterfactual_data?.narrative;
-  const recCount = report.recommendations?.length ?? 0;
+  const recCount       = report.recommendations?.length ?? 0;
 
   return (
     <>
@@ -188,7 +207,7 @@ export function AuditInsights({ report }: { report: AuditReport }) {
       {/* Executive Summary Modal */}
       <Modal
         open={summaryOpen}
-        onClose={() => setSummaryOpen(false)}
+        onClose={() => handleClose(setSummaryOpen)}
         title="AI Executive Summary"
         icon={<Sparkles size={15} style={{ color: "#60a5fa" }} />}
         accentColor="#27272a"
@@ -203,7 +222,7 @@ export function AuditInsights({ report }: { report: AuditReport }) {
       {/* Action Plan Modal */}
       <Modal
         open={actionOpen}
-        onClose={() => setActionOpen(false)}
+        onClose={() => handleClose(setActionOpen)}
         title="Action Plan"
         icon={<ChevronRight size={15} style={{ color: "#34d399" }} />}
         accentColor="#27272a"

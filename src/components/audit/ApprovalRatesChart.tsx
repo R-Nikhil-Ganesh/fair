@@ -71,7 +71,7 @@ export function ApprovalRatesChart({ disparities }: { disparities: DisparityInfo
                 border: "1px solid var(--border)",
                 boxShadow: "var(--shadow-md)",
               }}
-              formatter={(value: number) => [`${value}%`, "Approval Rate"]}
+              formatter={(value) => [`${Number(value)}%`, "Approval Rate"]}
             />
             <Bar dataKey="rate" radius={[4, 4, 0, 0]} maxBarSize={60}>
               {chartData.map((entry) => (

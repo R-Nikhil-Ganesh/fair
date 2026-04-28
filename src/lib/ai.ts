@@ -202,7 +202,7 @@ export async function uploadAndStartAudit(
   logAuditEvent("audit_started", {
     domain: config.domain,
     fileSize: file.size,
-    modelFramework: config.modelFramework ?? null,
+    ...(config.modelFramework ? { modelFramework: config.modelFramework } : {}),
     hasModelArtifact: Boolean(config.modelFile),
   });
 

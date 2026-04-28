@@ -91,6 +91,13 @@ export interface CounterfactualResult {
   narrative: string;
 }
 
+type FirestoreTimestamp =
+  | { seconds?: number; toDate?: () => Date }
+  | Date
+  | string
+  | number
+  | null;
+
 export interface ModelAuditSummary {
   model_type: string;
   historical_fairness: FairnessMetrics;
@@ -113,9 +120,9 @@ export interface AuditDocument {
   modelFramework?: "sklearn" | "onnx" | null;
   modelFileName?: string | null;
   modelFileSize?: number | null;
-  createdAt: any;
-  updatedAt: any;
-  completedAt?: any;
+  createdAt: FirestoreTimestamp;
+  updatedAt: FirestoreTimestamp;
+  completedAt?: FirestoreTimestamp;
   taskId?: string;
   error?: string;
   results?: {

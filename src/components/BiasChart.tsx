@@ -9,7 +9,6 @@ import {
   Tooltip,
   ResponsiveContainer,
   Legend,
-  Cell,
   ReferenceLine,
 } from "recharts";
 import type { FairnessMetrics } from "@/lib/types";
@@ -21,9 +20,11 @@ interface ApprovalRateDatum {
   count: number;
 }
 
+type CustomTooltipPayload = { name?: string; value?: number | string };
+
 interface CustomTooltipProps {
   active?: boolean;
-  payload?: Array<{ value: number }>;
+  payload?: CustomTooltipPayload[];
   label?: string;
   protectedAttribute: string;
   data: ApprovalRateDatum[];
@@ -37,11 +38,16 @@ function CustomTooltip({ active, payload, label, protectedAttribute, data }: Cus
       <p className="font-medium text-zinc-200">
         {protectedAttribute}: {label}
       </p>
-      {payload.map((entry, index) => (
-        <p key={`${entry.value}-${index}`} className="text-zinc-300">
-          {entry.name}: {entry.value}%
-        </p>
-      ))}
+      {(payload ?? []).map((entry, index) => {
+        const entryName = String(entry.name ?? "");
+        const rawValue = typeof entry.value === "number" ? entry.value : Number(entry.value ?? 0);
+        const valueDisplay = Number.isFinite(rawValue) ? `${rawValue}%` : "--";
+        return (
+          <p key={`${entryName}-${index}`} className="text-zinc-300">
+            {entryName}: {valueDisplay}
+          </p>
+        );
+      })}
       <p className="text-zinc-500">Records: {data.find((d) => d.group === label)?.count}</p>
     </div>
   );
@@ -54,8 +60,8 @@ interface BiasChartProps {
 }
 
 export function ApprovalRateChart({ metrics, protectedAttribute, modelMetrics }: BiasChartProps) {
-  const groupKeys = new Set([...
-    Object.keys(metrics.groupApprovalRates),
+  const groupKeys = new Set([
+    ...Object.keys(metrics.groupApprovalRates),
     ...(modelMetrics ? Object.keys(modelMetrics.groupApprovalRates) : []),
   ]);
 
@@ -96,7 +102,7 @@ export function ApprovalRateChart({ metrics, protectedAttribute, modelMetrics }:
               content={(props) => (
                 <CustomTooltip
                   active={props.active}
-                  payload={props.payload as Array<{ value: number; name: string }> | undefined}
+                  payload={props.payload as unknown as CustomTooltipPayload[] | undefined}
                   label={typeof props.label === "string" ? props.label : undefined}
                   protectedAttribute={protectedAttribute}
                   data={data}

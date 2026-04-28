@@ -21,6 +21,7 @@ type AuditEventName =
   | "report_exported"
   | "sample_dataset_audit_started"
   | "model_audit_started"
+  | "audit_detail_viewed"
   | "counterfactual_viewed"
   | "mitigation_step_clicked"
   | "onboarding_completed";

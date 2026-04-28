@@ -265,7 +265,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                 <input
                   type="file"
                   accept=".pkl,.onnx"
-                  onChange={(e) => setModelFile(e.target.files?.[0] || null)}
+                  onChange={handleModelFileChange}
                   className="block w-full text-sm text-zinc-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-zinc-800 file:text-zinc-200 hover:file:bg-zinc-700"
                 />
                 <p className="text-xs text-zinc-500 mt-2">Accepted formats: .pkl, .onnx</p>

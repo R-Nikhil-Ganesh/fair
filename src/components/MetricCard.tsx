@@ -130,10 +130,14 @@ export function MetricsGrid({ metrics, domain, modelMetrics }: MetricsGridProps)
     return "pass";
   };
 
-  const buildDelta = (historical: number, model: number, direction: "higher" | "lower") => {
+  const buildDelta = (
+    historical: number,
+    model: number,
+    direction: "higher" | "lower"
+  ): { delta: number; deltaTone: "good" | "bad" | "neutral" } => {
     const delta = model - historical;
     if (Math.abs(delta) < 0.0001) {
-      return { delta, deltaTone: "neutral" as const };
+      return { delta, deltaTone: "neutral" };
     }
     const improved = direction === "higher" ? delta > 0 : delta < 0;
     return { delta, deltaTone: improved ? "good" : "bad" };

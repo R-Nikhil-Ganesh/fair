@@ -1,21 +1,23 @@
 .page {
-  --background: #fafafa;
-  --foreground: #fff;
+  --background: #070707;
+  --foreground: #0f0f0f;
 
-  --text-primary: #000;
-  --text-secondary: #666;
+  --text-primary: #f5f5f5;
+  --text-secondary: #a1a1aa;
 
-  --button-primary-hover: #383838;
-  --button-secondary-hover: #f2f2f2;
-  --button-secondary-border: #ebebeb;
+  --button-primary-hover: #1d6ff2;
+  --button-secondary-hover: #161616;
+  --button-secondary-border: rgba(255, 255, 255, 0.12);
 
   display: flex;
   flex: 1;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-geist-sans);
+  font-family: "Space Grotesk", "Segoe UI", sans-serif;
   background-color: var(--background);
+  background-image: radial-gradient(circle at 20% 0%, rgba(41, 121, 255, 0.18), transparent 45%),
+    radial-gradient(circle at 70% 30%, rgba(16, 185, 129, 0.12), transparent 50%);
 }
 
 .main {
@@ -27,6 +29,9 @@
   align-items: flex-start;
   justify-content: space-between;
   background-color: var(--foreground);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.55);
   padding: 120px 60px;
 }
 
@@ -43,7 +48,7 @@
   font-size: 40px;
   font-weight: 600;
   line-height: 48px;
-  letter-spacing: -2.4px;
+  letter-spacing: -1.6px;
   text-wrap: balance;
   color: var(--text-primary);
 }
@@ -51,7 +56,7 @@
 .intro p {
   max-width: 440px;
   font-size: 18px;
-  line-height: 32px;
+  line-height: 30px;
   text-wrap: balance;
   color: var(--text-secondary);
 }
@@ -76,7 +81,7 @@
   align-items: center;
   height: 40px;
   padding: 0 16px;
-  border-radius: 128px;
+  border-radius: 999px;
   border: 1px solid transparent;
   transition: 0.2s;
   cursor: pointer;
@@ -85,13 +90,16 @@
 }
 
 a.primary {
-  background: var(--text-primary);
-  color: var(--background);
+  background: linear-gradient(180deg, #2f7bff 0%, #1a5fd4 100%);
+  color: #ffffff;
   gap: 8px;
+  box-shadow: 0 4px 14px rgba(41, 121, 255, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 a.secondary {
   border-color: var(--button-secondary-border);
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 /* Enable hover only on non-touch devices */
@@ -126,17 +134,5 @@ a.secondary {
 @media (prefers-color-scheme: dark) {
   .logo {
     filter: invert();
-  }
-
-  .page {
-    --background: #000;
-    --foreground: #000;
-
-    --text-primary: #ededed;
-    --text-secondary: #999;
-
-    --button-primary-hover: #ccc;
-    --button-secondary-hover: #1a1a1a;
-    --button-secondary-border: #1a1a1a;
   }
 }

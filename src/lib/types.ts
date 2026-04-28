@@ -91,6 +91,14 @@ export interface CounterfactualResult {
   narrative: string;
 }
 
+export interface ModelAuditSummary {
+  model_type: string;
+  historical_fairness: FairnessMetrics;
+  model_fairness: FairnessMetrics;
+  model_accuracy: number;
+  counterfactual_data?: CounterfactualResult;
+}
+
 export interface AuditDocument {
   auditId: string;
   uid: string;
@@ -115,5 +123,6 @@ export interface AuditDocument {
     geminiOutput: GeminiOutput;
     piiDetection: PIIDetectionResult;
     rowCount: number;
+    modelAudit?: ModelAuditSummary;
   };
 }

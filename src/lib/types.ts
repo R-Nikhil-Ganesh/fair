@@ -77,13 +77,26 @@ export interface PIIDetectionResult {
 }
 
 export interface CounterfactualEntry {
-  changedAttribute: string;
-  originalValue: string | number;
-  counterfactualValue: string | number;
-  counterfactualPrediction: number;
-  decisionChanged: boolean;
+  record_index: number;
+  changed_attribute: string;
+  original_value: string | number;
+  counterfactual_value: string | number;
+  original_prediction: number;
+  counterfactual_prediction: number;
+  decision_changed: boolean;
 }
 
+export interface CounterfactualData {
+  record_index: number;
+  original_prediction: number;
+  flip_count: number;
+  total_tested: number;
+  flip_rate: number;
+  narrative: string;
+  entries: CounterfactualEntry[];
+}
+
+/** Legacy shape kept for backward compat */
 export interface CounterfactualResult {
   recordIndex: number;
   originalPrediction: number;
@@ -92,6 +105,16 @@ export interface CounterfactualResult {
   narrative: string;
 }
 
+export interface ModelAuditSummary {
+  model_type: string;
+  historical_fairness?: FairnessMetrics;
+  model_fairness?: FairnessMetrics;
+  model_accuracy: number;
+  model_file_size_kb?: number;
+  prediction_counts?: Record<string, number>;
+  feature_columns?: string[];
+  counterfactual_data?: CounterfactualData;
+}
 type FirestoreTimestamp =
   | { seconds?: number; toDate?: () => Date }
   | Date
@@ -99,13 +122,6 @@ type FirestoreTimestamp =
   | number
   | null;
 
-export interface ModelAuditSummary {
-  model_type: string;
-  historical_fairness: FairnessMetrics;
-  model_fairness: FairnessMetrics;
-  model_accuracy: number;
-  counterfactual_data?: CounterfactualResult;
-}
 
 export interface AuditDocument {
   auditId: string;

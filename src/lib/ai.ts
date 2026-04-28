@@ -175,6 +175,7 @@ export async function uploadAndStartAudit(
               model_path: modelPath,
               protected_attribute: config.protectedAttribute,
               target_column: config.targetColumn,
+              favorable_label: config.favorableLabel,
               domain: config.domain,
               uid: config.uid,
               model_framework: config.modelFramework,

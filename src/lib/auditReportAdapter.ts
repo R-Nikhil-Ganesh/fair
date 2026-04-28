@@ -224,7 +224,8 @@ function normalizeModelAudit(raw: Record<string, unknown> | undefined) {
   const historicalMetrics = normalizeFairnessMetrics(historicalRaw);
   const modelMetrics = normalizeFairnessMetrics(modelRaw);
 
-  if (!historicalMetrics || !modelMetrics) {
+  // Require at least one fairness dataset to exist
+  if (!historicalMetrics && !modelMetrics) {
     return undefined;
   }
 
@@ -234,6 +235,8 @@ function normalizeModelAudit(raw: Record<string, unknown> | undefined) {
     historical_fairness: historicalMetrics,
     model_fairness: modelMetrics,
     counterfactual_data: raw.counterfactual_data as AuditReport["modelAudit"]["counterfactual_data"],
+    prediction_counts: raw.prediction_counts as Record<string, number> | undefined,
+    feature_columns: raw.feature_columns as string[] | undefined,
   };
 }
 

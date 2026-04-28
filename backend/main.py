@@ -39,6 +39,8 @@ class ModelAuditRequest(BaseModel):
 	protected_attribute: str
 	target_column: str
 	uid: str
+	favorable_label: int = 1
+	domain: Literal["lending", "employment", "insurance"] = "lending"
 
 
 def _parse_cors_origins() -> list[str]:

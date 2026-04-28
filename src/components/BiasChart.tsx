@@ -60,19 +60,37 @@ interface BiasChartProps {
 }
 
 export function ApprovalRateChart({ metrics, protectedAttribute, modelMetrics }: BiasChartProps) {
+  if (!metrics) {
+    return <p style={{ color: "#71717a", fontSize: "0.85rem" }}>Approval rate data not yet available.</p>;
+  }
+
+  // Backend may return snake_case keys – normalise before use
+  const histRates: Record<string, number> =
+    metrics?.groupApprovalRates ??
+    (metrics as unknown as Record<string, unknown>)?.group_approval_rates as Record<string, number> ??
+    {};
+  const histCounts: Record<string, number> =
+    metrics?.groupCounts ??
+    (metrics as unknown as Record<string, unknown>)?.group_counts as Record<string, number> ??
+    {};
+  const modRates: Record<string, number> | undefined = modelMetrics
+    ? (modelMetrics.groupApprovalRates ??
+       (modelMetrics as unknown as Record<string, unknown>)?.group_approval_rates as Record<string, number>)
+    : undefined;
+
   const groupKeys = new Set([
-    ...Object.keys(metrics.groupApprovalRates),
-    ...(modelMetrics ? Object.keys(modelMetrics.groupApprovalRates) : []),
+    ...Object.keys(histRates),
+    ...(modRates ? Object.keys(modRates) : []),
   ]);
 
   const data: ApprovalRateDatum[] = Array.from(groupKeys).map((group) => {
-    const historicalRate = metrics.groupApprovalRates[group] ?? 0;
-    const modelRate = modelMetrics?.groupApprovalRates[group];
+    const historicalRate = histRates[group] ?? 0;
+    const modelRate = modRates?.[group];
     return {
       group: String(group),
       Historical: Math.round(historicalRate * 1000) / 10,
       Model: modelRate !== undefined ? Math.round(modelRate * 1000) / 10 : undefined,
-      count: metrics.groupCounts[group] ?? 0,
+      count: histCounts[group] ?? 0,
     };
   });
 

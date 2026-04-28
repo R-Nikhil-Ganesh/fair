@@ -5,16 +5,15 @@ import { subscribeToAudit } from "@/lib/ai";
 import { useAnnounce } from "./AccessibilityWrapper";
 import type { AuditDocument } from "@/lib/types";
 
-const STEP_LABELS: Record<string, string> = {
-  uploading: "Uploading data",
-  loading_csv: "Loading dataset",
-  detecting_pii: "Scanning for sensitive data",
-  computing_metrics: "Computing fairness metrics",
-  running_gemini_narrative: "Generating bias explanation",
-  running_gemini_mitigation: "Building mitigation plan",
-  generating_counterfactuals: "Running counterfactual analysis",
-  complete: "Audit complete",
-};
+const STEPS: { key: string; label: string; pct: number }[] = [
+  { key: "loading_csv",               label: "Loading dataset",            pct: 10 },
+  { key: "detecting_pii",             label: "Scanning for sensitive data", pct: 20 },
+  { key: "computing_metrics",         label: "Computing fairness metrics",  pct: 40 },
+  { key: "running_gemini_narrative",  label: "Generating bias explanation", pct: 60 },
+  { key: "running_gemini_mitigation", label: "Building mitigation plan",    pct: 75 },
+  { key: "generating_counterfactuals",label: "Counterfactual analysis",     pct: 85 },
+  { key: "complete",                  label: "Audit complete",              pct: 100 },
+];
 
 interface AuditProgressProps {
   uid: string;
@@ -29,120 +28,121 @@ export function AuditProgress({ uid, auditId, onComplete, onError }: AuditProgre
 
   useEffect(() => {
     const unsub = subscribeToAudit(
-      uid,
-      auditId,
+      uid, auditId,
       (updated) => {
         setAudit(updated);
-
-        if (updated.status === "complete") {
-          announce("Audit complete. Results are ready.", "assertive");
-          onComplete(updated);
-        } else if (updated.status === "error") {
-          announce(`Audit failed: ${updated.error}`, "assertive");
-          onError(updated.error ?? "Unknown error");
-        } else if (updated.currentStep) {
-          announce(STEP_LABELS[updated.currentStep] ?? updated.currentStep);
-        }
+        if (updated.status === "complete") { announce("Audit complete.", "assertive"); onComplete(updated); }
+        else if (updated.status === "error") { announce(`Audit failed: ${updated.error}`, "assertive"); onError(updated.error ?? "Unknown error"); }
+        else if (updated.currentStep) { announce(STEPS.find(s => s.key === updated.currentStep)?.label ?? updated.currentStep); }
       },
       (err) => onError(err.message)
     );
-
     return unsub;
   }, [uid, auditId, onComplete, onError, announce]);
 
   if (!audit) {
     return (
-      <div className="audit-progress-shell audit-progress-starting" role="status" aria-label="Starting audit">
+      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "1.25rem" }}>
         <div
-          className="audit-progress-spinner w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"
-          aria-hidden="true"
+          style={{
+            width: 20, height: 20, borderRadius: "50%",
+            border: "2px solid #3b82f6",
+            borderTopColor: "transparent",
+            animation: "spin 0.8s linear infinite",
+            flexShrink: 0,
+          }}
+          aria-hidden
         />
-        <span className="audit-progress-start-label text-gray-600">Starting audit...</span>
+        <span style={{ color: "#a1a1aa", fontSize: "0.9rem" }}>Starting audit…</span>
       </div>
     );
   }
 
   const progress = audit.progress ?? 0;
-  const stepLabel = STEP_LABELS[audit.currentStep ?? ""] ?? "Processing...";
   const isError = audit.status === "error";
+  const currentKey = audit.currentStep ?? "";
 
   return (
-    <div className="audit-progress-shell py-6" role="status" aria-label={`Audit progress: ${progress}%`}>
-      <div className="audit-progress-header flex justify-between items-center mb-2">
-        <span className="audit-progress-step text-sm font-medium text-gray-700">{stepLabel}</span>
-        <span className="audit-progress-percent text-sm text-gray-500">{progress}%</span>
+    <div role="status" aria-label={`Audit progress: ${progress}%`} style={{ padding: "0.25rem 0" }}>
+      {/* Progress bar row */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+        <span style={{ fontSize: "0.85rem", fontWeight: 500, color: "#e4e4e7" }}>
+          {STEPS.find(s => s.key === currentKey)?.label ?? "Processing…"}
+        </span>
+        <span style={{ fontSize: "0.82rem", color: "#71717a", fontFamily: "monospace" }}>{progress}%</span>
       </div>
-
       <div
-        className="audit-progress-track h-2 bg-gray-200 rounded-full overflow-hidden"
         role="progressbar"
         aria-valuenow={progress}
         aria-valuemin={0}
         aria-valuemax={100}
-        aria-label="Audit completion progress"
+        style={{
+          height: 6, borderRadius: 999,
+          background: "#27272a",
+          overflow: "hidden",
+          marginBottom: "1.25rem",
+        }}
       >
         <div
-          className={`audit-progress-fill h-full rounded-full transition-all duration-500 ${
-            isError ? "bg-red-500" : "bg-blue-600"
-          }`}
-          style={{ width: `${progress}%` }}
+          style={{
+            height: "100%",
+            borderRadius: 999,
+            width: `${progress}%`,
+            background: isError
+              ? "linear-gradient(90deg,#ef4444,#f87171)"
+              : "linear-gradient(90deg,#2563eb,#3b82f6)",
+            transition: "width 0.5s ease",
+          }}
         />
       </div>
 
       {isError && (
         <div
-          className="audit-progress-error mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700"
           role="alert"
+          style={{
+            marginBottom: "1rem",
+            padding: "0.6rem 0.75rem",
+            background: "rgba(239,68,68,0.1)",
+            border: "1px solid rgba(239,68,68,0.3)",
+            borderRadius: "0.5rem",
+            fontSize: "0.82rem",
+            color: "#fca5a5",
+          }}
         >
           {audit.error ?? "An error occurred. Please try again."}
         </div>
       )}
 
-      <ol className="audit-progress-steps mt-6 space-y-2" aria-label="Pipeline steps">
-        {Object.entries(STEP_LABELS)
-          .slice(1)
-          .map(([key, label]) => {
-            const stepProgress = {
-              loading_csv: 10,
-              detecting_pii: 20,
-              computing_metrics: 40,
-              running_gemini_narrative: 60,
-              running_gemini_mitigation: 75,
-              generating_counterfactuals: 85,
-              complete: 100,
-            }[key] ?? 0;
-
-            const isDone = progress >= stepProgress && progress > 0;
-            const isActive = audit.currentStep === key;
-
-            return (
-              <li key={key} className="audit-progress-step-row flex items-center gap-3 text-sm">
-                <span
-                  className={`audit-progress-step-dot w-5 h-5 rounded-full flex items-center justify-center text-xs shrink-0 ${
-                    isDone
-                      ? "bg-green-100 text-green-700"
-                      : isActive
-                        ? "bg-blue-100 text-blue-700"
-                        : "bg-gray-100 text-gray-400"
-                  }`}
-                  aria-hidden="true"
-                >
-                  {isDone ? "✓" : isActive ? "•" : "○"}
-                </span>
-                <span
-                  className={
-                    isDone
-                      ? "text-gray-600"
-                      : isActive
-                        ? "font-medium text-gray-900"
-                        : "text-gray-400"
-                  }
-                >
-                  {label}
-                </span>
-              </li>
-            );
-          })}
+      {/* Step list */}
+      <ol aria-label="Pipeline steps" style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+        {STEPS.map(({ key, label, pct }) => {
+          const isDone   = progress >= pct && progress > 0;
+          const isActive = currentKey === key;
+          return (
+            <li key={key} style={{ display: "flex", alignItems: "center", gap: "0.65rem" }}>
+              <span
+                aria-hidden
+                style={{
+                  width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: "0.72rem", fontWeight: 700,
+                  background: isDone ? "rgba(16,185,129,0.15)" : isActive ? "rgba(59,130,246,0.15)" : "#18181b",
+                  color: isDone ? "#34d399" : isActive ? "#60a5fa" : "#52525b",
+                  border: `1px solid ${isDone ? "rgba(16,185,129,0.3)" : isActive ? "rgba(59,130,246,0.3)" : "#27272a"}`,
+                }}
+              >
+                {isDone ? "✓" : isActive ? "•" : "○"}
+              </span>
+              <span style={{
+                fontSize: "0.82rem",
+                color: isDone ? "#a1a1aa" : isActive ? "#f4f4f5" : "#52525b",
+                fontWeight: isActive ? 600 : 400,
+              }}>
+                {label}
+              </span>
+            </li>
+          );
+        })}
       </ol>
     </div>
   );

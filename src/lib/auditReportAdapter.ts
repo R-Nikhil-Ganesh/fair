@@ -179,20 +179,24 @@ function normalizeFairnessMetrics(raw: Record<string, unknown> | undefined) {
     (raw.thresholds_used as Record<string, unknown> | undefined) ??
     {};
 
+  // Use NaN for absent metrics so MetricCard renders '—' not '0.000'
+  const asMetric = (v: unknown) =>
+    typeof v === "number" && Number.isFinite(v) ? v : NaN;
+
   return {
-    demographicParityDifference: asNumber(
+    demographicParityDifference: asMetric(
       raw.demographicParityDifference ?? raw.demographic_parity_difference
     ),
-    equalizedOddsDifference: asNumber(
+    equalizedOddsDifference: asMetric(
       raw.equalizedOddsDifference ?? raw.equalized_odds_difference
     ),
-    averageOddsDifference: asNumber(
+    averageOddsDifference: asMetric(
       raw.averageOddsDifference ?? raw.average_odds_difference
     ),
-    disparateImpactRatio: asNumber(
+    disparateImpactRatio: asMetric(
       raw.disparateImpactRatio ?? raw.disparate_impact_ratio
     ),
-    statisticalParityDifference: asNumber(
+    statisticalParityDifference: asMetric(
       raw.statisticalParityDifference ?? raw.statistical_parity_difference
     ),
     groupApprovalRates: Object.fromEntries(

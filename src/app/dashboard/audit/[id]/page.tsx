@@ -11,6 +11,7 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { AuditMetricsRow } from "@/components/audit/AuditMetricsRow";
 import { ApprovalRatesChart } from "@/components/audit/ApprovalRatesChart";
 import { AuditInsights } from "@/components/audit/AuditInsights";
+import { ModelStatsModal } from "@/components/audit/ModelStatsModal";
 import { mapFirestoreAuditToReport } from "@/lib/auditReportAdapter";
 import { PdfExportButton } from "@/components/PdfExportButton";
 
@@ -126,7 +127,25 @@ export default function AuditResultsPage() {
         {auditDoc ? (
           <PdfExportButton audit={auditDoc} />
         ) : (
-          <button className="btn btn-secondary" disabled>Export PDF</button>
+          <button
+            disabled
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "0.5rem",
+              padding: "0.5rem 1rem",
+              borderRadius: "0.6rem",
+              border: "1px solid #27272a",
+              background: "#09090b",
+              color: "#52525b",
+              fontSize: "0.85rem",
+              fontWeight: 600,
+              cursor: "not-allowed",
+              opacity: 0.6,
+            }}
+          >
+            Export PDF
+          </button>
         )}
       </div>
 
@@ -184,53 +203,40 @@ export default function AuditResultsPage() {
 
         <ApprovalRatesChart report={report} />
 
-        {/* ── Model Statistics (only when model was uploaded) ── */}
+        {/* ── Model stats trigger (compact) ── */}
         {report.modelAudit && (
-          <div style={{ background: "#09090b", border: "1px solid #27272a", borderRadius: "1rem", padding: "1.25rem" }}>
-            <p style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "#52525b", marginBottom: "0.875rem" }}>
-              Model Statistics
-            </p>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "0.75rem" }}>
-              {/* Accuracy */}
+          <div style={{
+            background: "#09090b", border: "1px solid #27272a",
+            borderRadius: "1rem", padding: "1rem 1.25rem",
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            flexWrap: "wrap", gap: "0.75rem",
+          }}>
+            <div style={{ display: "flex", gap: "1.25rem", flexWrap: "wrap" }}>
+              {report.modelAudit.model_type && (
+                <div>
+                  <div style={{ fontSize: "0.62rem", color: "#52525b", textTransform: "uppercase", letterSpacing: "0.1em" }}>Model</div>
+                  <div style={{ fontWeight: 700, color: "#a5b4fc", fontSize: "0.9rem" }}>{report.modelAudit.model_type.toUpperCase()}</div>
+                </div>
+              )}
               {report.modelAudit.model_accuracy >= 0 && (
-                <div style={{ background: "#111", border: "1px solid #27272a", borderRadius: "0.7rem", padding: "0.75rem" }}>
-                  <div style={{ fontSize: "0.68rem", color: "#71717a", textTransform: "uppercase", letterSpacing: "0.08em" }}>Model Accuracy</div>
-                  <div style={{ fontSize: "1.4rem", fontWeight: 700, color: "#f4f4f5", fontFamily: "monospace", marginTop: "0.25rem" }}>
+                <div>
+                  <div style={{ fontSize: "0.62rem", color: "#52525b", textTransform: "uppercase", letterSpacing: "0.1em" }}>Accuracy</div>
+                  <div style={{ fontWeight: 700, color: "#f4f4f5", fontFamily: "monospace", fontSize: "0.9rem" }}>
                     {(report.modelAudit.model_accuracy * 100).toFixed(1)}%
                   </div>
                 </div>
               )}
-              {/* Model type */}
-              {report.modelAudit.model_type && (
-                <div style={{ background: "#111", border: "1px solid #27272a", borderRadius: "0.7rem", padding: "0.75rem" }}>
-                  <div style={{ fontSize: "0.68rem", color: "#71717a", textTransform: "uppercase", letterSpacing: "0.08em" }}>Model Type</div>
-                  <div style={{ fontSize: "1rem", fontWeight: 600, color: "#60a5fa", marginTop: "0.25rem" }}>
-                    {report.modelAudit.model_type.toUpperCase()}
-                  </div>
-                </div>
-              )}
-              {/* Prediction distribution */}
-              {report.modelAudit.prediction_counts && Object.keys(report.modelAudit.prediction_counts).length > 0 && (
-                <div style={{ background: "#111", border: "1px solid #27272a", borderRadius: "0.7rem", padding: "0.75rem" }}>
-                  <div style={{ fontSize: "0.68rem", color: "#71717a", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "0.4rem" }}>Predictions</div>
-                  {Object.entries(report.modelAudit.prediction_counts).map(([k, v]) => (
-                    <div key={k} style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8rem", marginBottom: "0.2rem" }}>
-                      <span style={{ color: k === "1" ? "#6ee7b7" : "#fca5a5" }}>{k === "1" ? "Approved" : "Denied"}</span>
-                      <span style={{ color: "#f4f4f5", fontFamily: "monospace" }}>{v.toLocaleString()}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {/* Feature count */}
-              {report.modelAudit.feature_columns && (
-                <div style={{ background: "#111", border: "1px solid #27272a", borderRadius: "0.7rem", padding: "0.75rem" }}>
-                  <div style={{ fontSize: "0.68rem", color: "#71717a", textTransform: "uppercase", letterSpacing: "0.08em" }}>Features Used</div>
-                  <div style={{ fontSize: "1.4rem", fontWeight: 700, color: "#f4f4f5", fontFamily: "monospace", marginTop: "0.25rem" }}>
-                    {report.modelAudit.feature_columns.length}
+              {report.modelAudit.counterfactual_data && (
+                <div>
+                  <div style={{ fontSize: "0.62rem", color: "#52525b", textTransform: "uppercase", letterSpacing: "0.1em" }}>CF Flip Rate</div>
+                  <div style={{ fontWeight: 700, fontFamily: "monospace", fontSize: "0.9rem",
+                    color: report.modelAudit.counterfactual_data.flip_rate >= 0.5 ? "#f87171" : "#34d399" }}>
+                    {(report.modelAudit.counterfactual_data.flip_rate * 100).toFixed(0)}%
                   </div>
                 </div>
               )}
             </div>
+            <ModelStatsModal report={report} />
           </div>
         )}
 

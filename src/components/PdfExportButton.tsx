@@ -39,26 +39,52 @@ export function PdfExportButton({ audit }: PdfExportButtonProps) {
     }
   };
 
+  const [isHovered, setIsHovered] = useState(false);
+
   return (
     <button
       type="button"
       onClick={handleExport}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       disabled={isGenerating}
-      className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "0.5rem",
+        padding: "0.5rem 1rem",
+        borderRadius: "0.6rem",
+        border: "1px solid #27272a",
+        background: isGenerating ? "#18181b" : isHovered ? "#1f1f23" : "#09090b",
+        color: "#f4f4f5",
+        fontSize: "0.85rem",
+        fontWeight: 600,
+        cursor: isGenerating ? "not-allowed" : "pointer",
+        opacity: isGenerating ? 0.6 : 1,
+        transition: "all 0.15s ease",
+        outline: "none",
+      }}
       aria-label="Export audit report as PDF"
     >
       {isGenerating ? (
         <>
           <span
-            className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"
+            style={{
+              width: "1rem",
+              height: "1rem",
+              border: "2px solid #52525b",
+              borderTopColor: "transparent",
+              borderRadius: "50%",
+            }}
+            className="animate-spin"
             aria-hidden="true"
           />
-          Generating...
+          <span style={{ color: "#a1a1aa" }}>Generating...</span>
         </>
       ) : (
         <>
-          <span aria-hidden="true">↓</span>
-          Export PDF report
+          <span aria-hidden="true" style={{ fontSize: "1.1rem" }}>↓</span>
+          <span>Export PDF Report</span>
         </>
       )}
     </button>

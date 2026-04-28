@@ -58,7 +58,13 @@ def generate_predictions(
 	feature_columns: list[str],
 ) -> np.ndarray:
 	if model_type == "sklearn":
-		return np.asarray(model.predict(df[feature_columns].values))
+		input_df = df
+		if not isinstance(input_df, pd.DataFrame):
+			input_df = pd.DataFrame(input_df, columns=feature_columns)
+		try:
+			return np.asarray(model.predict(input_df))
+		except (KeyError, ValueError, TypeError):
+			return np.asarray(model.predict(input_df[feature_columns]))
 
 	input_name = model.get_inputs()[0].name
 	x_float32 = df[feature_columns].values.astype(np.float32)

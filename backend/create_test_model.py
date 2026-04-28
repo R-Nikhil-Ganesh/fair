@@ -29,14 +29,15 @@ def build_model() -> Pipeline:
     feature_columns = ["age", "credit_amount", "duration", "purpose"]
     target_column = "credit_risk"
 
-    features = dataset[feature_columns].to_numpy()
-    target = dataset[target_column].to_numpy()
+    features = dataset[feature_columns]
+    target = dataset[target_column]
 
     preprocessor = ColumnTransformer(
         transformers=[
-            ("numeric", StandardScaler(), [0, 1, 2]),
-            ("categorical", OneHotEncoder(handle_unknown="ignore"), [3]),
-        ]
+            ("numeric", StandardScaler(), ["age", "credit_amount", "duration"]),
+            ("categorical", OneHotEncoder(handle_unknown="ignore"), ["purpose"]),
+        ],
+        remainder="drop",
     )
 
     model = Pipeline(

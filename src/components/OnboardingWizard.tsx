@@ -234,53 +234,58 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
           </div>
 
           {dataSource === "upload" && (
-            <div className="wizard-upload-panel">
-              <label htmlFor="csv-upload" className="wizard-label block text-sm font-medium mb-2">
-                Select CSV file
-              </label>
-              <input
-                id="csv-upload"
-                type="file"
-                accept=".csv"
-                onChange={handleFileChange}
-                disabled={isParsingCSV}
-                className="wizard-file-input block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                aria-describedby="csv-upload-help"
-              />
-              <p id="csv-upload-help" className="wizard-help text-xs text-gray-400 mt-2">
-                CSV must have a header row. Column names will be auto-detected.
-              </p>
-              <div className="mt-4">
-                <label htmlFor="model-upload" className="wizard-label block text-sm font-medium mb-2">
-                  Model artifact (.pkl or .onnx)
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+              <div className="wizard-upload-panel bg-zinc-900 border border-zinc-800 p-5 rounded-xl">
+                <label htmlFor="csv-upload" className="block text-sm font-medium text-zinc-200 mb-2">
+                  Evaluation Dataset
                 </label>
                 <input
-                  id="model-upload"
+                  id="csv-upload"
+                  type="file"
+                  accept=".csv"
+                  onChange={handleFileChange}
+                  disabled={isParsingCSV}
+                  className="block w-full text-sm text-zinc-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-zinc-800 file:text-zinc-200 hover:file:bg-zinc-700"
+                  aria-describedby="csv-upload-help"
+                />
+                <p id="csv-upload-help" className="text-xs text-zinc-500 mt-2">
+                  CSV must have a header row. Column names will be auto-detected.
+                </p>
+                {isParsingCSV && (
+                  <p className="text-sm text-blue-400 mt-2" role="status">
+                    Parsing CSV...
+                  </p>
+                )}
+              </div>
+
+              <div className="wizard-upload-panel bg-zinc-900 border border-zinc-800 p-5 rounded-xl">
+                <label className="block text-sm font-medium text-zinc-200 mb-2">
+                  Model Artifact (Optional)
+                </label>
+                <input
                   type="file"
                   accept=".pkl,.onnx"
-                  onChange={handleModelFileChange}
-                  className="wizard-file-input block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                  onChange={(e) => setModelFile(e.target.files?.[0] || null)}
+                  className="block w-full text-sm text-zinc-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-zinc-800 file:text-zinc-200 hover:file:bg-zinc-700"
                 />
+                <p className="text-xs text-zinc-500 mt-2">Accepted formats: .pkl, .onnx</p>
+
+                {modelFile && (
+                  <div className="mt-4">
+                    <label className="block text-xs font-medium text-zinc-400 mb-1">
+                      Model Framework
+                    </label>
+                    <select
+                      value={modelFramework}
+                      onChange={(e) => setModelFramework(e.target.value as "sklearn" | "onnx")}
+                      className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                    >
+                      <option value="sklearn">Scikit-Learn (.pkl)</option>
+                      <option value="onnx">ONNX (.onnx)</option>
+                    </select>
+                  </div>
+                )}
               </div>
-              <div className="mt-3">
-                <label htmlFor="model-framework" className="wizard-label block text-sm font-medium mb-2">
-                  Model framework
-                </label>
-                <select
-                  id="model-framework"
-                  value={modelFramework}
-                  onChange={(e) => setModelFramework(e.target.value as "sklearn" | "onnx")}
-                  className="wizard-select w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="sklearn">Scikit-Learn (.pkl)</option>
-                  <option value="onnx">ONNX (.onnx)</option>
-                </select>
-              </div>
-              {isParsingCSV && (
-                <p className="wizard-status text-sm text-blue-600 mt-2" role="status">
-                  Parsing CSV...
-                </p>
-              )}
             </div>
           )}
 

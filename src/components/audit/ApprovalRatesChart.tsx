@@ -17,14 +17,19 @@ type ApprovalRatesChartProps = {
 
 export function ApprovalRatesChart({ report }: ApprovalRatesChartProps) {
   const chartData = report.disparities.map((disparity) => {
-    let modelRate = undefined;
-    if (report.modelAudit?.model_fairness?.group_approval_rates?.[disparity.group] !== undefined) {
-      modelRate = Math.round(report.modelAudit.model_fairness.group_approval_rates[disparity.group] * 100);
+    const modelFairness = report.modelAudit?.model_fairness;
+    // Support both normalized (camelCase) and raw (snake_case) keys
+    const groupRates: Record<string, number> | undefined =
+      modelFairness?.groupApprovalRates ?? modelFairness?.group_approval_rates;
+
+    let modelRate: number | undefined = undefined;
+    if (groupRates && groupRates[disparity.group] !== undefined) {
+      modelRate = Math.round(groupRates[disparity.group] * 100);
     }
     return {
       name: disparity.group,
       historicalRate: Math.round(disparity.approvalRate * 100),
-      modelRate: modelRate,
+      modelRate,
       flagged: disparity.flagged,
     };
   });

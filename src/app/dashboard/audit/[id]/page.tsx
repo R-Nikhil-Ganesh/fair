@@ -122,28 +122,22 @@ export default function AuditResultsPage() {
         </div>
       ) : null}
 
-      <div className="grid md:grid-cols-3 gap-6 items-start">
-        <div className="md:col-span-2 flex flex-col gap-6">
-          <AuditMetricsRow
-            protectedAttribute={report.protectedAttribute || "Pending"}
-            totalRecords={report.totalRecords}
-            overallApprovalRate={report.overallApprovalRate}
-            isPending={isProcessing}
-            modelAudit={report.modelAudit}
-          />
+      <div className="flex flex-col gap-6">
+        <AuditMetricsRow
+          protectedAttribute={report.protectedAttribute || "Pending"}
+          totalRecords={report.totalRecords}
+          overallApprovalRate={report.overallApprovalRate}
+          isPending={isProcessing}
+          modelAudit={report.modelAudit}
+        />
 
-          <ApprovalRatesChart report={report} />
-        </div>
+        <ApprovalRatesChart report={report} />
 
-        <div className="space-y-6">
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-4">
-            <div className="flex items-center gap-2 text-sm font-semibold text-zinc-200">
-              Command Center
-            </div>
-            <p className="mt-2 text-xs text-zinc-500 leading-relaxed">
-              Review narrative insights, counterfactual logs, and action plans before exporting.
-            </p>
-          </div>
+        {/* Insights — compact button strip that opens modals */}
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-5">
+          <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-4">
+            Insights &amp; Actions
+          </p>
           <AuditInsights report={report} />
         </div>
       </div>

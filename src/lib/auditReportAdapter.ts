@@ -238,7 +238,7 @@ function normalizeModelAudit(raw: Record<string, unknown> | undefined) {
     model_accuracy: asNumber(raw.model_accuracy, -1),
     historical_fairness: historicalMetrics,
     model_fairness: modelMetrics,
-    counterfactual_data: raw.counterfactual_data as AuditReport["modelAudit"]["counterfactual_data"],
+    counterfactual_data: raw.counterfactual_data as import("./types").ModelAuditSummary["counterfactual_data"],
     prediction_counts: raw.prediction_counts as Record<string, number> | undefined,
     feature_columns: raw.feature_columns as string[] | undefined,
   };

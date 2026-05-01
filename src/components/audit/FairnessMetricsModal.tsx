@@ -149,7 +149,7 @@ function GroupedApprovalChart({ report }: { report: AuditReport }) {
           <YAxis domain={[0, 100]} tickFormatter={v => `${v}%`} tick={{ fontSize: 11, fill: C.sub }} />
           <Tooltip
             contentStyle={{ background: "#09090b", border: `1px solid ${C.border}`, borderRadius: "0.5rem", fontSize: "0.78rem" }}
-            formatter={(v: number) => [`${v}%`]}
+            formatter={(v) => [typeof v === "number" ? `${v}%` : String(v ?? "")]}
           />
           <ReferenceLine y={80} stroke="rgba(239,68,68,0.5)" strokeDasharray="5 3" label={{ value: "80% rule", fill: C.fail, fontSize: 10, position: "insideTopRight" }} />
           <Legend verticalAlign="top" wrapperStyle={{ color: C.sub, fontSize: "0.78rem", paddingBottom: "0.5rem" }} />

@@ -12,7 +12,7 @@ import { AuditProgress } from "@/components/AuditProgress";
 import { Brand } from "@/components/layout/Brand";
 import type { AuditDocument } from "@/lib/types";
 
-type PageState = "wizard" | "uploading" | "processing" | "complete" | "error";
+type PageState = "wizard" | "queuing" | "uploading" | "processing" | "complete" | "error";
 
 const NAV = [
   { href: "/dashboard",           label: "Overview",     icon: LayoutDashboard },
@@ -42,12 +42,13 @@ export default function NewAuditPage() {
   }) => {
     try {
       if (config.sampleDatasetKey) {
-        setPageState("processing");
+        setPageState("queuing");  // show spinner while API call is in-flight
         const id = await startSampleDatasetAudit(config.sampleDatasetKey, {
           uid: user.uid, protectedAttribute: config.protectedAttribute,
           targetColumn: config.targetColumn, favorableLabel: config.favorableLabel, domain: config.domain,
         });
         setAuditId(id);
+        setPageState("processing");
       } else if (config.file) {
         setPageState("uploading");
         const id = await uploadAndStartAudit(
@@ -139,6 +140,17 @@ export default function NewAuditPage() {
 
             {/* Wizard */}
             {pageState === "wizard" && <OnboardingWizard onComplete={handleWizardComplete} />}
+
+            {/* Queuing (sample dataset: waiting for API call before AuditProgress can mount) */}
+            {pageState === "queuing" && (
+              <div style={{ background: "#0b0b0b", border: "1px solid #27272a", borderRadius: "1rem", padding: "1.5rem", display: "flex", alignItems: "center", gap: "1rem" }}>
+                <div style={{ width: 20, height: 20, borderRadius: "50%", border: "2px solid #3b82f6", borderTopColor: "transparent", animation: "spin 0.8s linear infinite", flexShrink: 0 }} />
+                <div>
+                  <p style={{ color: "#f4f4f5", fontWeight: 600, fontSize: "0.9rem", margin: 0 }}>Queuing sample audit…</p>
+                  <p style={{ color: "#71717a", fontSize: "0.8rem", marginTop: "0.25rem" }}>Registering the job in Firestore before starting the pipeline.</p>
+                </div>
+              </div>
+            )}
 
             {/* Uploading */}
             {pageState === "uploading" && (

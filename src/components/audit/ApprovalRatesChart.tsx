@@ -112,7 +112,7 @@ export function ApprovalRatesChart({ report }: { report: AuditReport }) {
   /* ── Model data (only when model audit present) ── */
   const modelFairness = report.modelAudit?.model_fairness;
   const groupRates: Record<string, number> | undefined =
-    modelFairness?.groupApprovalRates ?? modelFairness?.group_approval_rates;
+    modelFairness?.groupApprovalRates;
 
   const hasModel = Boolean(report.modelAudit && groupRates && Object.keys(groupRates).length > 0);
 

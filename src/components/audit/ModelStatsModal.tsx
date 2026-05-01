@@ -127,7 +127,7 @@ function ApprovalComparison({ modelAudit, protectedAttribute }: { modelAudit: Au
           <Tooltip
             contentStyle={{ background: "#09090b", border: `1px solid ${C.border}`, borderRadius: "0.5rem", fontSize: "0.78rem" }}
             labelStyle={{ color: C.text }}
-            formatter={(v: number) => [`${v}%`]}
+            formatter={(v) => [typeof v === "number" ? `${v}%` : String(v ?? "")]}
           />
           <Legend verticalAlign="top" wrapperStyle={{ color: C.subtext, fontSize: "0.78rem", paddingBottom: "0.5rem" }} />
           {Object.keys(histRates).length > 0 && <Bar dataKey="Historical" radius={[4,4,0,0]} fill={C.historical} />}
@@ -226,7 +226,7 @@ function FairnessDelta({ modelAudit }: { modelAudit: AuditReport["modelAudit"] }
           <YAxis type="category" dataKey="label" width={170} tick={{ fontSize: 10, fill: C.subtext }} />
           <Tooltip
             contentStyle={{ background: "#09090b", border: `1px solid ${C.border}`, borderRadius: "0.5rem", fontSize: "0.78rem" }}
-            formatter={(v: number) => [`${v.toFixed(2)}%`]}
+            formatter={(v) => [typeof v === "number" ? `${v.toFixed(2)}%` : String(v ?? "")]}
           />
           <Legend verticalAlign="top" wrapperStyle={{ color: C.subtext, fontSize: "0.78rem", paddingBottom: "0.5rem" }} />
           {showHist && <Bar dataKey="Historical" radius={[0,4,4,0]} fill={C.historical} />}

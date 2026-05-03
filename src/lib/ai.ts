@@ -12,7 +12,7 @@ import type {
   AuditDocument
 } from "./types";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "";
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? "https://fair-508327638254.asia-south1.run.app";
 
 // ─── Upload CSV and create audit document ──────────────────────────────────
 
